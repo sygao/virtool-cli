@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 env:
   API_CALLER_URL: "${{ vars.API_CALLER_URL }}"
-  GH_PAT: "${{ vars.GH_PAT }}"
+  GH_PAT: "${{ vars.GH_BOT_PAT }}"
 
 jobs:
   test:

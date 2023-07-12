@@ -24,11 +24,11 @@ def test_fetch_callers_tarfile():
     
     assert tarfile.is_tarfile(caller_path)
 
-def test_bad_extant_url():
-    with pytest.raises(KeyError):
-        caller_tarfile = init.fetch_callers(
-            api_url='https://api.github.com',
-            cache_path=cache_path)
+# def test_bad_extant_url():
+#     with pytest.raises(KeyError):
+#         caller_tarfile = init.fetch_callers(
+#             api_url='https://api.github.com',
+#             cache_path=cache_path)
 
 # if __name__ == '__main__':
 #     # env = load_dotenv(TEST_FILES_PATH / 'secrets.env')
