@@ -5,3 +5,6 @@ __pycache__
 .pytest_cache
 /.cli
 .DS_Store
+
+/tests/files/.cache
+/tests/files/new_repo
