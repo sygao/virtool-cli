@@ -4,11 +4,11 @@ on:
     branches: [ main ]
   push:
     branches: [ main ]
+env:
+  API_CALLER_URL: "${{ vars.API_CALLER_URL }}"
+  GH_PAT: "${{ vars.GH_PAT }}"
 
 jobs:
-  env:
-    API_CALLER_URL: "${{ vars.API_CALLER_URL }}"
-    GH_PAT: "${{ vars.GH_PAT }}"
   test:
     runs-on: ubuntu-latest
     steps:
