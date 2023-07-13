@@ -30,18 +30,16 @@ jobs:
         with:
           python-version: '3.7'
       
-      - run: |
+      - name: Install packages
+        run: |
+          conda install -c bioconda muscle cd-hit hmmer blast mcl
+          conda install -c conda-forge poetry
+          poetry install
+      
+      - name: Run tests
+        run: |
           echo $PWD
-      
-      # - name: Install packages
-      #   run: |
-      #     conda install -c bioconda muscle cd-hit hmmer blast mcl
-      #     conda install -c conda-forge poetry
-      #     poetry install
-      
-  #     - name: Run tests
-  #       run: |
-  #         poetry run pytest
+          poetry run pytest
       
   # release:
   #   if: github.event_name == 'push'
