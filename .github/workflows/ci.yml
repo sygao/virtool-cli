@@ -19,8 +19,8 @@ jobs:
         - my_docker_volume:/volume_mount
       options: --cpus 1
     steps:
-      - name: Check for dockerenv file
-        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)\
+      # - name: Check for dockerenv file
+      #   run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)\
 
       - uses: actions/checkout@v3
       
