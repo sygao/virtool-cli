@@ -7,21 +7,22 @@ on:
     branches: [ main ]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
     container:
       image: continuumio/miniconda3:4.9.2
       env:
         NODE_ENV: development
+        API_CALLER_URL: ${{ vars.API_CALLER_URL }}
+        GH_PAT: ${{ secrets.GH_BOT_PAT }}
       ports:
         - 80
       volumes:
         - my_docker_volume:/volume_mount
       options: --cpus 1
-    steps:
-      # - name: Check for dockerenv file
-      #   run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)\
 
+    steps:
       - uses: actions/checkout@v3
       
       - name: Setup Python
@@ -29,6 +30,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.7'
+      
+      - name: Configure conda
+        run: |
+          conda config --add channels defaults
+          conda config --add channels bioconda
+          conda config --add channels conda-forge
+          conda config --set channel_priority strict
       
       - name: Install packages
         run: |
@@ -39,24 +47,25 @@ jobs:
       - name: Run tests
         run: |
           echo $PWD
+          echo $API_CALLER_URL
           poetry run pytest
       
-  # release:
-  #   if: github.event_name == 'push'
-  #   needs:
-  #     - test
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Setup NodeJS
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 16
-  #     - name: Install semantic-release
-  #       run: npm i semantic-release@v18.0.0 conventional-changelog-conventionalcommits@4.6.1
-  #     - name: Release
-  #       env:
-  #         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
-  #         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-  #       run: npx semantic-release
+  release:
+    if: github.event_name == 'push'
+    needs:
+      - test
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Install semantic-release
+        run: npm i semantic-release@v18.0.0 conventional-changelog-conventionalcommits@4.6.1
+      - name: Release
+        env:
+          GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: npx semantic-release
