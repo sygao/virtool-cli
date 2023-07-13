@@ -3,11 +3,7 @@ WORKDIR /app
 RUN conda config --add channels defaults
 RUN conda config --add channels bioconda
 RUN conda config --add channels conda-forge
-RUN conda install -c bioconda muscle
-RUN conda install -c bioconda cd-hit
-RUN conda install -c bioconda hmmer
-RUN conda install -c bioconda blast
-RUN conda install -c bioconda mcl
+RUN conda install -c bioconda muscle cd-hit hmmer blast mcl
 RUN pip install poetry
 COPY . .
 
