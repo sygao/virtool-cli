@@ -9,11 +9,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run CI
-        run:
-          docker build -t virtool/cli:test --target=test .
+    steps:  
+      - uses: actions/checkout@v3
+      # - name: Run CI
+      #   run:
+      #     docker build -t virtool/cli:test --target=test .
+      
+      - name: "Install conda"
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: test
+          auto-update-conda: true
+          python-version: 3.7
+          channels: bioconda
+      
+      - name: Install packages
+        run: |
+          conda install -c bioconda muscle cd-hit hmmer blast mcl
+          pip install poetry
+          poetry install .
+      
+      - name: Run tests
+        run: |
+          poetry run pytest
+      
   release:
     if: github.event_name == 'push'
     needs:
@@ -21,7 +40,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup NodeJS
         uses: actions/setup-node@v1
         with:
