@@ -36,8 +36,9 @@ jobs:
           conda install -c bioconda muscle cd-hit hmmer blast mcl
           conda install -c conda-forge poetry
           s
+
       - name: Install package
-        run: poetry install
+        run: pip install poetry
       
       - name: Run tests
         run: |
