@@ -28,7 +28,7 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: "Install conda"
+      - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: test
@@ -39,7 +39,7 @@ jobs:
       - name: Install packages
         run: |
           conda install -c bioconda muscle cd-hit hmmer blast mcl
-          poetry install .
+          poetry install
       
       - name: Run tests
         run: |
