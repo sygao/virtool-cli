@@ -24,7 +24,8 @@ jobs:
       - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: test
+          auto-activate-base: true
+          activate-environment: ""
           auto-update-conda: true
           python-version: 3.7
           channels: bioconda
