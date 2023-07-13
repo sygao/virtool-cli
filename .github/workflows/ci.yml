@@ -9,13 +9,19 @@ env:
   GH_PAT: "${{ secrets.GH_BOT_PAT }}"
 
 jobs:
+  
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run CI
-        run:
-          docker build -t virtool/cli:test --target=test .
+      - uses: docker/build-push-action@v4
+        with:
+          tags: virtool/cli:test
+          target: test
+          push: false
+      # - name: Run CI
+      #   run:
+      #     docker build -t virtool/cli:test --target=test .
 
   release:
     if: github.event_name == 'push'

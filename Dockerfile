@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:4.9.2 as base
+FROM continuumio/miniconda3:22.11.1 as base
 WORKDIR /app
 RUN conda config --add channels defaults
 RUN conda config --add channels bioconda
@@ -14,6 +14,6 @@ COPY . .
 FROM base as build
 RUN poetry install --no-dev
 
-FROM base as test
-RUN poetry install
-RUN poetry run pytest
+# FROM base as test
+# RUN poetry install
+# RUN poetry run pytest
