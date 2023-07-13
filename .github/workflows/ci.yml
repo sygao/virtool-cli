@@ -9,52 +9,56 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:  
+    container:
+      image: continuumio/miniconda3:4.9.2
+      env:
+        NODE_ENV: development
+      ports:
+        - 80
+      volumes:
+        - my_docker_volume:/volume_mount
+      options: --cpus 1
+    steps:
+      - name: Check for dockerenv file
+        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)\
+
       - uses: actions/checkout@v3
-      # - name: Run CI
-      #   run:
-      #     docker build -t virtool/cli:test --target=test .
       
       - name: Setup Python
         id: setup-python
         uses: actions/setup-python@v4
         with:
           python-version: '3.7'
-
-      - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: test
-          auto-update-conda: true
-          python-version: 3.7
-          channels: bioconda, conda-forge
       
-      - name: Install packages
-        run: |
-          conda install -c bioconda muscle cd-hit hmmer blast mcl
-          conda install -c conda-forge poetry
-          poetry install
+      - run: |
+          echo $PWD
       
-      - name: Run tests
-        run: |
-          poetry run pytest
+      # - name: Install packages
+      #   run: |
+      #     conda install -c bioconda muscle cd-hit hmmer blast mcl
+      #     conda install -c conda-forge poetry
+      #     poetry install
       
-  release:
-    if: github.event_name == 'push'
-    needs:
-      - test
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - name: Install semantic-release
-        run: npm i semantic-release@v18.0.0 conventional-changelog-conventionalcommits@4.6.1
-      - name: Release
-        env:
-          GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npx semantic-release
+  #     - name: Run tests
+  #       run: |
+  #         poetry run pytest
+      
+  # release:
+  #   if: github.event_name == 'push'
+  #   needs:
+  #     - test
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Setup NodeJS
+  #       uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 16
+  #     - name: Install semantic-release
+  #       run: npm i semantic-release@v18.0.0 conventional-changelog-conventionalcommits@4.6.1
+  #     - name: Release
+  #       env:
+  #         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
+  #         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  #       run: npx semantic-release
