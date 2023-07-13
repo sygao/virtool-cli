@@ -24,16 +24,15 @@ jobs:
       - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-activate-base: true
-          activate-environment: ""
+          activate-environment: test
           auto-update-conda: true
           python-version: 3.7
-          channels: bioconda
+          channels: bioconda, conda-forge
       
       - name: Install packages
         run: |
           conda install -c bioconda muscle cd-hit hmmer blast mcl
-          pip install poetry
+          conda install -c conda-forge poetry
           poetry install
       
       - name: Run tests
