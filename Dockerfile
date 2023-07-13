@@ -14,6 +14,6 @@ COPY . .
 FROM base as build
 RUN poetry install --no-dev
 
-# FROM base as test
-# RUN poetry install
-# RUN poetry run pytest
+FROM base as test
+RUN poetry install
+RUN poetry run pytest
