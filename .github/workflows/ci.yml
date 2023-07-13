@@ -11,11 +11,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: continuumio/miniconda3:22.11.1
+      image: continuumio/miniconda3:4.9.2
       env:
         NODE_ENV: development
-        API_CALLER_URL: ${{ vars.API_CALLER_URL }}
-        GH_PAT: ${{ secrets.GH_BOT_PAT }}
+        API_CALLER_URL: "${{ vars.API_CALLER_URL }}"
+        GH_PAT: "${{ secrets.GH_BOT_PAT }}"
       ports:
         - 80
       volumes:
@@ -29,7 +29,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.7'
       
       - name: Install dependencies
         run: |
