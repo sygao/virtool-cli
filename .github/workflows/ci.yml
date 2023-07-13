@@ -34,11 +34,10 @@ jobs:
       - name: Install dependencies
         run: |
           conda install -c bioconda muscle cd-hit hmmer blast mcl
-          conda install -c conda-forge poetry
-          s
-
+          pip install poetry
+          
       - name: Install package
-        run: pip install poetry
+        run: poetry install
       
       - name: Run tests
         run: |
