@@ -6,7 +6,7 @@ on:
 
 jobs:
   call_pull-accessions:
-    uses: sygao/ref-workflows/.github/workflows/pull-accessions.yml@main
+    uses: ${{ env.GITHUB_REPOSITORY_OWNER }}/ref-workflows/.github/workflows/pull-accessions.yml@main
     secrets: inherit
     permissions:
       contents: write
