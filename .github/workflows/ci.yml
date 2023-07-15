@@ -7,13 +7,34 @@ on:
     branches: [ main ]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
+    container:
+      image: continuumio/miniconda3:4.9.2
+      env:
+        NODE_ENV: development
+        API_CALLER_URL: "${{ vars.API_CALLER_URL }}"
+        GH_PAT: "${{ secrets.GH_BOT_PAT }}"
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Run CI
-        run:
-          docker build -t virtool/cli:test --target=test .
+      - uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: |
+          conda install -c bioconda muscle cd-hit hmmer blast mcl
+          pip install poetry
+          
+      - name: Install package
+        run: |
+          poetry lock
+          poetry install
+      
+      - name: Run tests
+        run: |
+          echo $API_CALLER_URL
+          poetry run pytest
+      
   release:
     if: github.event_name == 'push'
     needs:
@@ -21,7 +42,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup NodeJS
         uses: actions/setup-node@v1
         with:
