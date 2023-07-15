@@ -26,7 +26,7 @@ jobs:
           conda install -c bioconda cd-hit hmmer blast mcl -q -y
           wget https://drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz
           tar -xvzf muscle3.8.31_i86linux64.tar.gz
-          mv muscle3.8.31_i86linux64.tar.gz /bin/muscle
+          mv muscle3.8.31_i86linux64 /bin/muscle
           chmod u+x /bin/muscle
           whereis muscle
           pip install poetry
