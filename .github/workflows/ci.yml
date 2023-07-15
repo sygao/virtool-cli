@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
 env:
-  API_CALLER_URL: "${{ vars.CALLER_API_URL }}"
+  CALLER_API_URL: "${{ vars.CALLER_API_URL }}"
   GH_PAT: "${{ vars.GH_BOT_PAT }}"
 
 jobs:
@@ -32,6 +32,7 @@ jobs:
           wget https://drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz
           tar -xvzf muscle3.8.31_i86linux64.tar.gz
           mv muscle3.8.31_i86linux64.tar.gz /bin/muscle
+          chmod u+x /bin/muscle
           pip install poetry
           
       - name: Install package
