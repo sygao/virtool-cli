@@ -12,8 +12,6 @@ jobs:
       image: continuumio/miniconda3:latest
       env:
         NODE_ENV: development
-        API_CALLER_URL: "${{ vars.CALLER_API_URL }}"
-        GH_PAT: "${{ secrets.GH_BOT_PAT }}"
       ports:
         - 80
       volumes:
@@ -42,6 +40,9 @@ jobs:
         run: |
           echo $CALLER_API_URL
           poetry run pytest
+        env:
+          API_CALLER_URL: "${{ vars.CALLER_API_URL }}"
+          GH_PAT: "${{ secrets.GH_BOT_PAT }}"
       
   release:
     if: github.event_name == 'push'
