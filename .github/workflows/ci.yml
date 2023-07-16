@@ -1,5 +1,4 @@
 name: ci
-
 on:
   pull_request:
     branches: [ main ]
@@ -11,16 +10,41 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
+<<<<<<< Updated upstream
       image: continuumio/miniconda3:4.9.2
       env:
         NODE_ENV: development
+=======
+      image: continuumio/miniconda3:latest
+      env:
+        NODE_ENV: development
+      ports:
+        - 80
+      volumes:
+        - my_docker_volume:/volume_mount
+      options: --cpus 1
+>>>>>>> Stashed changes
 
     steps:
       - uses: actions/checkout@v3
       
+<<<<<<< Updated upstream
       - name: Install dependencies
         run: |
           conda install -c bioconda muscle cd-hit hmmer blast mcl -q -y
+=======
+      - name: Install MUSCLE v3 manually
+        run: |
+          wget https://drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz
+          tar -xvzf muscle3.8.31_i86linux64.tar.gz
+          mv muscle3.8.31_i86linux64 /bin/muscle
+          chmod u+x /bin/muscle
+          whereis muscle
+
+      - name: Install conda and poetry
+        run: |
+          conda install -c bioconda cd-hit hmmer blast mcl -q -y
+>>>>>>> Stashed changes
           pip install poetry
           
       - name: Install package
@@ -33,7 +57,11 @@ jobs:
           echo $CALLER_API_URL
           poetry run pytest
         env:
+<<<<<<< Updated upstream
           API_CALLER_URL: "${{ vars.CALLER_API_URL }}"
+=======
+          CALLER_API_URL: "${{ vars.CALLER_API_URL }}"
+>>>>>>> Stashed changes
           GH_PAT: "${{ secrets.GH_BOT_PAT }}"
       
   release:
@@ -54,4 +82,4 @@ jobs:
         env:
           GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npx semantic-release
+        run: npx semantic-releaseå
