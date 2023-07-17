@@ -7,6 +7,7 @@ import virtool_cli.init
 import virtool_cli.isolate
 import virtool_cli.repair
 import virtool_cli.taxid
+from virtool_cli.migrate import run
 
 
 @click.group("ref")
@@ -228,6 +229,15 @@ def init(repo_path: str, api_url: str, cache_path:str='', github_token=None):
         cache_path=cache_path, 
         gh_token=github_token)
 
+@ref.command()
+@click.option(
+    "-src", "--src_path",
+    required=True,
+    type=str,
+    help="the path to a reference directory",
+)
+def migrate(src_path):
+    run(src_path)
 
 if __name__ == "__main__":
     ref()
