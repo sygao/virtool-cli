@@ -1,10 +1,10 @@
 import subprocess
 import sys
 import click
-import virtool_cli.vfam
+from virtool_cli.vfam import vfam
 
 from pathlib import Path
-from virtool_cli.vfam_console import console
+from virtool_cli.vfam.vfam_console import console
 
 
 @click.group("hmm")
@@ -88,7 +88,7 @@ def vfam(
         sys.exit(1)
 
     try:
-        virtool_cli.vfam.run(
+        vfam.run(
             src_path,
             Path(output),
             prefix,

@@ -1,5 +1,5 @@
 from pathlib import Path
-from virtool_cli.vfam_curate import (
+from .vfam_curate import (
     get_input_paths,
     group_input_paths,
     write_curated_records,
@@ -7,16 +7,16 @@ from virtool_cli.vfam_curate import (
     genbank_to_fasta,
     get_genbank_files,
 )
-from virtool_cli.vfam_collapse import (
+from virtool_cli.vfam.vfam_collapse import (
     generate_clusters,
     write_rmv_polyproteins,
     blast_all_by_all,
 )
-from virtool_cli.vfam_polyprotein import find_polyproteins
-from virtool_cli.vfam_markov import blast_to_mcl, mcl_to_fasta
-from virtool_cli.vfam_filter import filter_on_coverage, filter_on_number
-from virtool_cli.vfam_msa import batch_muscle_call, batch_hmm_call, concatenate_hmms
-from virtool_cli.vfam_annotation import get_json_from_clusters
+from .vfam_polyprotein import find_polyproteins
+from .vfam_markov import blast_to_mcl, mcl_to_fasta
+from .vfam_filter import filter_on_coverage, filter_on_number
+from .vfam_msa import batch_muscle_call, batch_hmm_call, concatenate_hmms
+from .vfam_annotation import get_json_from_clusters
 
 
 def run(
