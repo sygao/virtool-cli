@@ -4,7 +4,7 @@ import shutil
 
 from rich.console import Console
 
-from virtool_cli.legacy_utils import create_otu_path
+from virtool_cli.utils.legacy import create_otu_path
 
 OTU_KEYS = ["_id", "name", "abbreviation", "schema", "taxid"]
 

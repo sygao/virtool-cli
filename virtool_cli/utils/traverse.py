@@ -1,6 +1,13 @@
 import json
 from pathlib import Path
 
+
+def get_alphabins(src_path: Path) -> list:
+    """
+    Generates a list of paths to all alphabetical bins.
+    """
+    return [alphabin for alphabin in src_path.glob('[a-z]') if alphabin.is_dir()] 
+
 def get_all_otu_paths(src_path: Path) -> list:
     """
     Generates a list of paths to all OTUs in a src directory.
@@ -35,3 +42,14 @@ def rm_r(path):
     except Exception as e:
         return e
     path.rmdir()
+
+if __name__ == '__main__':
+    REPO_DIR = Path.home() / "Development/UVic/Virtool/Repositories/"
+    repo_path = REPO_DIR / 'ref-mini'
+    src_path = repo_path / 'src'
+
+    otu_paths = get_all_otu_paths(src_path)
+
+    for otu_path in otu_paths:
+        print(otu_path.relative_to(repo_path))
+    
