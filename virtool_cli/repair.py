@@ -1,7 +1,6 @@
 import json
 from typing import Optional
 from pathlib import Path
-
 from rich.console import Console
 
 from virtool_cli.utils.legacy import get_otu_paths, get_otus, create_otu_path
