@@ -20,14 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
-      # - name: Install MUSCLE v3
-      #   run: |
-      #     wget https://drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz
-      #     tar -xvzf muscle3.8.31_i86linux64.tar.gz
-      #     mv muscle3.8.31_i86linux64 /bin/muscle
-      #     chmod u+x /bin/muscle
-      #     whereis muscle
 
       - name: Install conda and poetry
         run: |
@@ -65,4 +57,4 @@ jobs:
         env:
           GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npx semantic-releaseå
+        run: npx semantic-release
