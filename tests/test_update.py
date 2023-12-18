@@ -6,7 +6,7 @@ from subprocess import CompletedProcess
 
 from paths import TEST_FILES_PATH
 
-BASE_PATH = TEST_FILES_PATH / "src_test_partial"
+SOURCE_PATH = TEST_FILES_PATH / "src_test"
 TEST_ACCLOG_PATH = TEST_FILES_PATH / "catalog"
 
 
@@ -30,85 +30,75 @@ class TestEmptyRepo:
         assert completed_process.returncode != 0
 
 
-@pytest.mark.parametrize("base_path", [BASE_PATH])
-def test_update_basic(base_path, tmp_path):
-    """
-    Test that updates actually pull something.
-    """
-    fetch_path = tmp_path / "src"
-    pre_update_ref_path = tmp_path / "reference_pre.json"
-    post_update_ref_path = tmp_path / "reference_post.json"
+class TestPartialRepo:
+    @pytest.fixture()
+    def partial_src(self, tmp_path):
+        src_partial_path = tmp_path / "src_partial"
 
-    shutil.copytree(base_path, fetch_path)
+        otu_subset = [
+            'gaillardia_latent_virus--f8a56910',
+            'habenaria_mosaic_virus--a89b6529',
+            'impatiens_flower_break_potyvirus--e7wkndjc'
+        ]
 
-    run_build(src_path=fetch_path, output_path=pre_update_ref_path)
+        for otu_filename in otu_subset:
+            shutil.copytree(
+                SOURCE_PATH / otu_filename,
+                src_partial_path / otu_filename
+            )
 
-    completed_process = run_update(src_path=fetch_path, catalog_path=TEST_ACCLOG_PATH)
-    assert completed_process.returncode == 0
+        return src_partial_path
 
-    run_build(src_path=fetch_path, output_path=post_update_ref_path)
+    @pytest.fixture()
+    def updated_src(self, tmp_path):
+        return tmp_path / "src"
 
-    reference_pre = json.loads(pre_update_ref_path.read_text())
-    pre_otu_dict = convert_to_dict(reference_pre["otus"])
+    @pytest.fixture()
+    def pre_reference(self, tmp_path):
+        return tmp_path / "reference_pre.json"
 
-    reference_post = json.loads(post_update_ref_path.read_text())
-    post_otu_dict = convert_to_dict(reference_post["otus"])
+    @pytest.fixture()
+    def post_reference(self, tmp_path):
+        return tmp_path / "reference_post.json"
 
-    difference_counter = 0
+    def test_update_success(self, partial_src, updated_src, pre_reference, post_reference):
+        """
+        Test that updates actually pull something.
+        """
+        src_partial = partial_src
+        fetch_path = updated_src
+        pre_update_ref_path = pre_reference
+        post_update_ref_path = post_reference
 
-    for otu_id in post_otu_dict:
-        pre_accessions = get_otu_accessions(pre_otu_dict[otu_id])
-        post_accessions = get_otu_accessions(post_otu_dict[otu_id])
+        shutil.copytree(src_partial, fetch_path)
 
-        print(pre_accessions)
-        print(post_accessions)
+        run_build(src_path=fetch_path, output_path=pre_update_ref_path)
 
-        if pre_accessions != post_accessions:
-            difference_counter += 1
+        completed_process = run_update(src_path=fetch_path, catalog_path=TEST_ACCLOG_PATH)
+        assert completed_process.returncode == 0
 
-    # Any new data counts
-    assert difference_counter > 0
+        run_build(src_path=fetch_path, output_path=post_update_ref_path)
 
+        reference_pre = json.loads(pre_update_ref_path.read_text())
+        pre_otu_dict = convert_to_dict(reference_pre["otus"])
 
-@pytest.mark.skip()
-@pytest.mark.parametrize("base_path", [BASE_PATH])
-def test_update_autoevaluate(base_path, tmp_path):
-    """
-    Test that updates actually pull something.
-    Autoevaluation.
-    """
-    fetch_path = tmp_path / "src"
-    pre_update_ref_path = tmp_path / "reference_pre.json"
-    post_update_ref_path = tmp_path / "reference_post.json"
+        reference_post = json.loads(post_update_ref_path.read_text())
+        post_otu_dict = convert_to_dict(reference_post["otus"])
 
-    shutil.copytree(base_path, fetch_path)
+        difference_counter = 0
 
-    run_build(src_path=fetch_path, output_path=pre_update_ref_path)
+        for otu_id in post_otu_dict:
+            pre_accessions = get_otu_accessions(pre_otu_dict[otu_id])
+            post_accessions = get_otu_accessions(post_otu_dict[otu_id])
 
-    run_update(src_path=fetch_path, catalog_path=TEST_ACCLOG_PATH)
+            print(pre_accessions)
+            print(post_accessions)
 
-    run_build(src_path=fetch_path, output_path=post_update_ref_path)
+            if pre_accessions != post_accessions:
+                difference_counter += 1
 
-    reference_pre = json.loads(pre_update_ref_path.read_text())
-    pre_otu_dict = convert_to_dict(reference_pre["otus"])
-
-    reference_post = json.loads(post_update_ref_path.read_text())
-    post_otu_dict = convert_to_dict(reference_post["otus"])
-
-    difference_counter = 0
-
-    for otu_id in post_otu_dict:
-        pre_accessions = get_otu_accessions(pre_otu_dict[otu_id])
-        post_accessions = get_otu_accessions(post_otu_dict[otu_id])
-
-        print(pre_accessions)
-        print(post_accessions)
-
-        if pre_accessions != post_accessions:
-            difference_counter += 1
-
-    # Any new data counts
-    assert difference_counter > 0
+        # Any new data counts
+        assert difference_counter > 0
 
 
 @pytest.fixture()
