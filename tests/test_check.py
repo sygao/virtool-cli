@@ -17,31 +17,51 @@ TEST_DIRS = [
 ]
 
 
+def delete_isolates(otu_path):
+    for isolate_path in get_isolate_paths(otu_path):
+        shutil.rmtree(isolate_path)
+
+
+def delete_isolate_metadata(otu_path):
+    for isolate_path in get_isolate_paths(otu_path):
+        (isolate_path / "isolate.json").unlink()
+
+
+def remove_otu_id(otu_path):
+    otu = json.loads((otu_path / 'otu.json').read_text())
+    otu["_id"] = ""
+    with open(otu_path / 'otu.json', "w") as f:
+        json.dump(otu, f, indent=4)
+
+
+def remove_isolate_id(otu_path):
+    for isolate_path in get_isolate_paths(otu_path):
+        isolate = json.loads((isolate_path / 'isolate.json').read_text())
+        isolate["id"] = ""
+        with open(isolate_path / 'isolate.json', "w") as f:
+            json.dump(isolate, f, indent=4)
+
+
 @pytest.fixture()
 def malformed_src(tmp_path):
     test_src_path = tmp_path / "src"
     shutil.copytree(TEST_SRC_PATH, test_src_path)
 
-    abaca_path = test_src_path / "abaca_bunchy_top_virus--c93ec9a9/"
-    for isolate_path in get_isolate_paths(abaca_path):
-        shutil.rmtree(isolate_path)
+    delete_isolates(
+        test_src_path / "abaca_bunchy_top_virus--c93ec9a9/"
+    )
 
-    babaco_path = test_src_path / "babaco_mosaic_virus--xcl20vqt"
-    otu = json.loads((babaco_path / 'otu.json').read_text())
-    otu["_id"] = ""
-    with open(babaco_path / 'otu.json', "w") as f:
-        json.dump(otu, f, indent=4)
+    remove_otu_id(
+        test_src_path / "babaco_mosaic_virus--xcl20vqt"
+    )
 
-    cabbage_path = test_src_path / "cabbage_leaf_curl_jamaica_virus--d226290f"
-    for isolate_path in get_isolate_paths(cabbage_path):
-        (isolate_path / "isolate.json").unlink()
+    delete_isolate_metadata(
+        test_src_path / "cabbage_leaf_curl_jamaica_virus--d226290f"
+    )
 
-    faba_path = test_src_path / "faba_bean_necrotic_stunt_alphasatellite_1--6444acf3"
-    for isolate_path in get_isolate_paths(faba_path):
-        isolate = json.loads((isolate_path / 'isolate.json').read_text())
-        isolate["id"] = ""
-        with open(isolate_path / 'isolate.json', "w") as f:
-            json.dump(isolate, f, indent=4)
+    remove_isolate_id(
+        test_src_path / "faba_bean_necrotic_stunt_alphasatellite_1--6444acf3"
+    )
 
     return test_src_path
 
