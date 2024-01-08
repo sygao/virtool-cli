@@ -38,7 +38,7 @@ def test_version(version, command, output):
     if version:
         command += ["-V", version]
 
-    subprocess.call(command)
+    subprocess.run(command)
 
     built_json = json.load(output)
 
@@ -50,7 +50,7 @@ def test_created_at(command, output):
     Test that the time of the creation in the reference.json file is correct
     """
 
-    subprocess.call(command)
+    subprocess.run(command)
 
     built_json = json.load(output)
 
@@ -64,14 +64,13 @@ def test_indent(command, output, indent):
     """
     Test that the indent in the reference.json file is properly set
     """
-
     if indent:
         command.append("-i")
         expected_path = TEST_WITH_INDENT_PATH
     else:
         expected_path = TEST_BUILD_PATH
 
-    subprocess.call(command)
+    subprocess.run(command)
 
     expected_size = os.path.getsize(expected_path)
     output_size = os.path.getsize(output)

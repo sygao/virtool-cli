@@ -163,7 +163,7 @@ class TestAddAccession:
 
     @pytest.mark.parametrize(
         "accession, otu_dirname",
-        [("KT390494", "nanovirus-like_particle--ae0f2a35")],
+        [("KT390494", "nanovirus_like_particle--ae0f2a35")],
     )
     def test_add_isolate_success(
         self, accession, otu_dirname, work_path, work_catalog_path
@@ -224,7 +224,7 @@ class TestAddAccessions:
         "accessions, otu_subpath",
         [
             ("DQ178612, NC_038793", "cabbage_leaf_curl_jamaica_virus--d226290f"),
-            ("KT390494, KT390496, KT390501", "nanovirus-like_particle--ae0f2a35"),
+            ("KT390494, KT390496, KT390501", "nanovirus_like_particle--ae0f2a35"),
         ],
     )
     def test_add_accessions_success(
