@@ -29,7 +29,7 @@ def work_catalog_path(tmp_path):
 def empty_repo(tmp_path):
     new_repo_path = tmp_path / "new_repo"
 
-    subprocess.call(["virtool", "ref", "init", "-repo", str(new_repo_path)])
+    subprocess.run(["virtool", "ref", "init", "-repo", str(new_repo_path)])
 
     return new_repo_path
 
@@ -50,7 +50,7 @@ def get_all_sequence_paths(otu_path: Path) -> set[Path]:
 
 
 def run_build(src_path, build_path):
-    subprocess.call(
+    subprocess.run(
         [
             "virtool",
             "ref",
@@ -66,7 +66,7 @@ def run_build(src_path, build_path):
 class TestAddAccession:
     @staticmethod
     def run_command(accession: str, src_path: Path, catalog_path: Path):
-        subprocess.call(
+        subprocess.run(
             [
                 "virtool",
                 "ref",
@@ -189,7 +189,7 @@ class TestAddAccession:
 class TestAddAccessions:
     @staticmethod
     def run_command(accessions: str, otu_path: Path, catalog_path: Path):
-        subprocess.call(
+        subprocess.run(
             [
                 "virtool",
                 "ref",
@@ -248,7 +248,7 @@ class TestAddAccessions:
 class TestAddOTU:
     @staticmethod
     def run_command(taxon_id: int, src_path: Path, catalog_path: Path):
-        subprocess.call(
+        subprocess.run(
             [
                 "virtool",
                 "ref",

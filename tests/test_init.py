@@ -6,7 +6,7 @@ import subprocess
 def empty_repo(tmp_path):
     new_repo_path = tmp_path / "new_repo"
 
-    subprocess.call(["virtool", "ref", "init", "-repo", str(new_repo_path)])
+    subprocess.run(["virtool", "ref", "init", "-repo", str(new_repo_path)])
 
     return new_repo_path
 
