@@ -47,21 +47,13 @@ def malformed_src(tmp_path):
     test_src_path = tmp_path / "src"
     shutil.copytree(TEST_SRC_PATH, test_src_path)
 
-    delete_isolates(
-        test_src_path / "abaca_bunchy_top_virus--c93ec9a9/"
-    )
+    delete_isolates(test_src_path / TEST_DIRS[0])
 
-    remove_otu_id(
-        test_src_path / "babaco_mosaic_virus--xcl20vqt"
-    )
+    remove_otu_id(test_src_path / TEST_DIRS[1])
 
-    delete_isolate_metadata(
-        test_src_path / "cabbage_leaf_curl_jamaica_virus--d226290f"
-    )
+    delete_isolate_metadata(test_src_path / TEST_DIRS[2])
 
-    remove_isolate_id(
-        test_src_path / "faba_bean_necrotic_stunt_alphasatellite_1--6444acf3"
-    )
+    remove_isolate_id(test_src_path / TEST_DIRS[3])
 
     return test_src_path
 
