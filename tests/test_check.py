@@ -7,7 +7,7 @@ from paths import TEST_FILES_PATH
 from virtool_cli.utils.reference import get_isolate_paths
 
 TEST_SRC_PATH = TEST_FILES_PATH / "src_test"
-TEST_BAD_SRC_PATH = TEST_FILES_PATH / "src_malformed"
+# TEST_BAD_SRC_PATH = TEST_FILES_PATH / "src_malformed"
 
 TEST_DIRS = [
     "abaca_bunchy_top_virus--c93ec9a9",
