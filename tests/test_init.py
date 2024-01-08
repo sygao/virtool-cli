@@ -18,7 +18,7 @@ def test_init_exist(empty_repo):
 def test_init_build(empty_repo):
     build_path = empty_repo / "reference.json"
 
-    subprocess.call(
+    subprocess.run(
         [
             "virtool",
             "ref",

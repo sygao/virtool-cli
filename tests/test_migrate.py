@@ -58,9 +58,9 @@ def test_migrate(base_path, tmp_path):
 
     ref_v2_path = tmp_path / "reference_v2.json"
 
-    subprocess.call(["virtool", "ref", "migrate", "-src", str(migrate_path)])
+    subprocess.run(["virtool", "ref", "migrate", "-src", str(migrate_path)])
 
-    subprocess.call(
+    subprocess.run(
         ["virtool", "ref", "build", "-src", str(migrate_path), "-o", str(ref_v2_path)]
     )
 
