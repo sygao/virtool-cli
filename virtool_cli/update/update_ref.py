@@ -7,7 +7,7 @@ from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1, get_all_unique_ids
 from virtool_cli.utils.storage import read_otu
 from virtool_cli.update.update import request_new_records, get_no_fetch_set, process_records
-from virtool_cli.update.writer import cacher_loop, UpdateWriter
+from virtool_cli.reference.writers import cacher_loop, SequenceWriter
 
 DEFAULT_INTERVAL = 0.001
 
@@ -126,7 +126,7 @@ async def update_reference(
         )
     else:
         unique_iso, unique_seq = await get_all_unique_ids(src_path)
-        update_writer = UpdateWriter(
+        update_writer = SequenceWriter(
             src_path=src_path, isolate_ids=unique_iso, sequence_ids=unique_seq
         )
         # Pulls formatted sequences from write queue, checks isolate metadata

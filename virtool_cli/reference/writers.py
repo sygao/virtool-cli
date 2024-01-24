@@ -13,7 +13,7 @@ from virtool_cli.utils.storage import (
 DEFAULT_INTERVAL = 0.001
 
 
-class UpdateWriter:
+class SequenceWriter:
     """
     Writer class for batch reference updates.
     Holds and updates sequence ids and isolate ids.
@@ -43,7 +43,7 @@ class UpdateWriter:
 
             logger = self.logger.bind(otu_id=otu_id)
 
-            otu_path = await get_otu_path(otu_id, self.src_path, logger)
+            otu_path = await search_otu_path_by_id(otu_id, self.src_path, logger)
             if not otu_path:
                 queue.task_done()
                 continue
@@ -181,7 +181,7 @@ async def cacher_loop(
 
         logger.info(f"Packet {otu_id} taken from queue")
 
-        otu_path = await get_otu_path(otu_id, src_path, logger)
+        otu_path = await search_otu_path_by_id(otu_id, src_path, logger)
         if not otu_path:
             queue.task_done()
             continue
@@ -201,7 +201,7 @@ async def cacher_loop(
         queue.task_done()
 
 
-async def get_otu_path(otu_id, src_path, logger):
+async def search_otu_path_by_id(otu_id, src_path, logger):
     otu_path = search_otu_by_id(otu_id, src_path)
     if not otu_path:
         logger.error("OTU path by id not found")
@@ -253,48 +253,47 @@ async def cache_new_sequences(
     with open(summary_path, "w") as f:
         json.dump(processed_updates, f, indent=2, sort_keys=True)
 
-
-async def writer_loop(
-    src_path: Path,
-    queue: asyncio.Queue,
-):
-    """
-    DEPRECATED
-    Awaits new sequence data per OTU and writes new data
-    to the correct location under the reference directory
-
-    :param src_path: Path to a reference directory
-    :param queue: Queue holding formatted sequence and isolate data processed by this loop
-    """
-    logger = structlog.get_logger()
-    logger.debug("Starting writer...")
-
-    unique_iso, unique_seq = await get_all_unique_ids(src_path)
-
-    while True:
-        packet = await queue.get()
-        otu_id, sequence_data = await process_sequence_packet(packet)
-
-        logger = logger.bind(otu_id=otu_id)
-
-        sequence_data = packet["data"]
-
-        otu_path = await get_otu_path(otu_id, src_path, logger)
-        if not otu_path:
-            queue.task_done()
-            continue
-
-        logger = logger.bind(otu_path=str(otu_path))
-
-        logger.debug("Writing packet...")
-        await write_records(
-            otu_path=otu_path,
-            new_sequences=sequence_data,
-            unique_iso=unique_iso,
-            unique_seq=unique_seq,
-            logger=logger
-        )
-
-        await asyncio.sleep(DEFAULT_INTERVAL)
-        queue.task_done()
-
+#
+# async def writer_loop(
+#     src_path: Path,
+#     queue: asyncio.Queue,
+# ):
+#     """
+#     DEPRECATED
+#     Awaits new sequence data per OTU and writes new data
+#     to the correct location under the reference directory
+#
+#     :param src_path: Path to a reference directory
+#     :param queue: Queue holding formatted sequence and isolate data processed by this loop
+#     """
+#     logger = structlog.get_logger()
+#     logger.debug("Starting writer...")
+#
+#     unique_iso, unique_seq = await get_all_unique_ids(src_path)
+#
+#     while True:
+#         packet = await queue.get()
+#         otu_id, sequence_data = await process_sequence_packet(packet)
+#
+#         logger = logger.bind(otu_id=otu_id)
+#
+#         sequence_data = packet["data"]
+#
+#         otu_path = await get_otu_path(otu_id, src_path, logger)
+#         if not otu_path:
+#             queue.task_done()
+#             continue
+#
+#         logger = logger.bind(otu_path=str(otu_path))
+#
+#         logger.debug("Writing packet...")
+#         await write_records(
+#             otu_path=otu_path,
+#             new_sequences=sequence_data,
+#             unique_iso=unique_iso,
+#             unique_seq=unique_seq,
+#             logger=logger
+#         )
+#
+#         await asyncio.sleep(DEFAULT_INTERVAL)
+#         queue.task_done()

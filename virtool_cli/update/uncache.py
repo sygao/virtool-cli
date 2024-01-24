@@ -5,7 +5,7 @@ import structlog
 
 from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1, get_all_unique_ids
-from virtool_cli.update.writer import UpdateWriter
+from virtool_cli.reference.writers import SequenceWriter
 
 DEFAULT_INTERVAL = 0.001
 
@@ -76,7 +76,7 @@ async def update_reference_from_cache(
 
     # Create UpdateWriter for this session
     unique_iso, unique_seq = await get_all_unique_ids(src_path)
-    update_writer = UpdateWriter(
+    update_writer = SequenceWriter(
         src_path=src_path, isolate_ids=unique_iso, sequence_ids=unique_seq
     )
 

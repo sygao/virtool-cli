@@ -2,7 +2,7 @@ from pathlib import Path
 import structlog
 from structlog import BoundLogger, get_logger
 
-from virtool_cli.update.writer import UpdateWriter
+from virtool_cli.reference.writers import SequenceWriter
 from virtool_cli.utils.reference import get_all_unique_ids
 from virtool_cli.utils.storage import get_otu_accessions, fetch_exclusions
 from virtool_cli.utils.format import get_qualifiers
@@ -128,7 +128,7 @@ async def write_sequences_to_src(
     """
     isolate_ids, sequence_ids = await get_all_unique_ids(src_path)
 
-    accession_writer = UpdateWriter(src_path, isolate_ids, sequence_ids)
+    accession_writer = SequenceWriter(src_path, isolate_ids, sequence_ids)
 
     try:
         new_sequence_paths = await accession_writer.write_otu_records(
