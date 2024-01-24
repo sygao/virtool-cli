@@ -38,30 +38,13 @@ async def write_records(
     for seq_data in new_sequences:
         isolate_data = seq_data.pop("isolate")
         isolate_name = isolate_data["source_name"]
-        isolate_type = isolate_data["source_type"]
 
-        if isolate_name in ref_isolates:
-            iso_id = ref_isolates[isolate_name]["id"]
-            logger.debug(
-                "Existing isolate name found", iso_name=isolate_name, iso_hash=iso_id
+        iso_id = assign_isolate(isolate_name, ref_isolates, unique_iso, logger)
+
+        if not (otu_path / iso_id).exists():
+            new_isolate = format_isolate(
+                isolate_name, isolate_data["source_type"], iso_id
             )
-
-        else:
-            try:
-                iso_id = generate_unique_ids(n=1, excluded=list(unique_iso)).pop()
-            except Exception as e:
-                logger.exception(e)
-                continue
-
-            logger.debug(
-                "Assigning new isolate hash", iso_name=isolate_name, iso_hash=iso_id
-            )
-
-            try:
-                new_isolate = format_isolate(isolate_name, isolate_type, iso_id)
-            except Exception as e:
-                logger.exception(e)
-                continue
 
             await store_isolate(new_isolate, iso_id, otu_path)
 
@@ -94,6 +77,23 @@ async def write_records(
         new_sequence_paths.append(sequence_path)
 
     return new_sequence_paths
+
+
+def assign_isolate(isolate_name, ref_isolates, unique_iso, logger) -> str:
+    if isolate_name in ref_isolates:
+        iso_id = ref_isolates[isolate_name]["id"]
+        logger.debug(
+            "Existing isolate name found", iso_name=isolate_name, iso_hash=iso_id
+        )
+        return iso_id
+
+    else:
+        try:
+            iso_id = generate_unique_ids(n=1, excluded=list(unique_iso)).pop()
+            return iso_id
+        except Exception as e:
+            logger.exception(e)
+            return ""
 
 
 async def store_isolate(
