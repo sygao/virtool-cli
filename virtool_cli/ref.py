@@ -4,6 +4,7 @@ import click
 from virtool_cli.update.cli import update
 from virtool_cli.add.cli import add
 from virtool_cli.check.cli import check
+from virtool_cli.clean import run as run_clean
 from virtool_cli.init import run as run_init
 from virtool_cli.build import run as run_build
 from virtool_cli.divide import run as run_divide
@@ -38,6 +39,26 @@ def init(repo_path, debug):
     """Instantiate directory structure for an empty reference source"""
     try:
         run_init(repo_path, debug)
+    except (FileNotFoundError, NotADirectoryError):
+        click.echo(
+            ERROR_MESSAGE
+            + "Ran into problems with the given reference repository directory",
+            err=True,
+        )
+
+@ref.command()
+@click.option(
+    "-repo",
+    "--repo_path",
+    required=True,
+    type=click.Path(file_okay=False, path_type=Path),
+    help="the path to a containing directory for the repository",
+)
+@click.option("--debug/--no-debug", default=False)
+def clean(repo_path, debug):
+    """Deletes items from default cache folders"""
+    try:
+        run_clean(repo_path, debug)
     except (FileNotFoundError, NotADirectoryError):
         click.echo(
             ERROR_MESSAGE
