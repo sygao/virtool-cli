@@ -3,14 +3,12 @@ from pathlib import Path
 import asyncio
 import structlog
 
-from virtool_cli.utils.reference import (
-    get_otu_paths,
-    search_otu_by_id,
-    get_unique_ids,
-)
-from virtool_cli.utils.storage import write_records, label_isolates, store_isolate, store_sequence
-from virtool_cli.utils.format import format_isolate
+from virtool_cli.utils.reference import search_otu_by_id, get_all_unique_ids
 from virtool_cli.utils.id_generator import generate_unique_ids
+from virtool_cli.utils.format import format_isolate
+from virtool_cli.utils.storage import (
+    write_records, label_isolates, store_isolate, store_sequence
+)
 
 DEFAULT_INTERVAL = 0.001
 
@@ -271,7 +269,7 @@ async def writer_loop(
     logger = structlog.get_logger()
     logger.debug("Starting writer...")
 
-    unique_iso, unique_seq = await get_unique_ids(get_otu_paths(src_path))
+    unique_iso, unique_seq = await get_all_unique_ids(src_path)
 
     while True:
         packet = await queue.get()

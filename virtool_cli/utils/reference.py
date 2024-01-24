@@ -85,7 +85,7 @@ def generate_otu_dirname(name: str, otu_id: str = '') -> str:
     return dirname
 
 
-async def get_unique_ids(otu_paths: list) -> Tuple[set, set]:
+async def get_unique_ids(otu_paths: list[Path]) -> Tuple[set, set]:
     """
     Returns sets containing unique random alphanumeric ids for both the isolates and the sequences
 
@@ -102,6 +102,18 @@ async def get_unique_ids(otu_paths: list) -> Tuple[set, set]:
 
             for seq_path in get_sequence_paths(isolate_path):
                 sequence_ids.add(seq_path.stem)
+
+    return isolate_ids, sequence_ids
+
+
+async def get_all_unique_ids(src_path: Path) -> Tuple[set, set]:
+    """
+    Returns sets containing unique random alphanumeric ids for both the isolates and the sequences
+
+    :param src_path: Path to a reference source directory
+    :return: Sets containing unique ids for both isolates and sequences
+    """
+    isolate_ids, sequence_ids = await get_unique_ids(get_otu_paths(src_path))
 
     return isolate_ids, sequence_ids
 

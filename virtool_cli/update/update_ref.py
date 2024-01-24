@@ -4,7 +4,7 @@ import structlog
 from urllib.error import HTTPError
 
 from virtool_cli.utils.logging import configure_logger
-from virtool_cli.utils.reference import is_v1, get_unique_ids, get_otu_paths
+from virtool_cli.utils.reference import is_v1, get_all_unique_ids
 from virtool_cli.utils.storage import read_otu
 from virtool_cli.update.update import request_new_records, get_no_fetch_set, process_records
 from virtool_cli.update.writer import cacher_loop, UpdateWriter
@@ -125,7 +125,7 @@ async def update_reference(
             cacher_loop(src_path, update_cache_path, write_queue)
         )
     else:
-        unique_iso, unique_seq = await get_unique_ids(get_otu_paths(src_path))
+        unique_iso, unique_seq = await get_all_unique_ids(src_path)
         update_writer = UpdateWriter(
             src_path=src_path, isolate_ids=unique_iso, sequence_ids=unique_seq
         )
@@ -149,10 +149,9 @@ async def fetcher_loop(
     otu_paths: list, queue: asyncio.Queue, cache_path: Path, dry_run: bool = False
 ):
     """
-    Loops through selected OTU listings from accession catalogue,
-    indexed by NCBI taxon ID, and:
-        1) requests NCBI Genbank for accession numbers not extant
-            in catalog,
+    Loops through selected OTUs and:
+        1) Checks if cached updates exist, skips run if matching file is found
+        2) requests NCBI Genbank for accession numbers not extant in catalog,
         2) loops through retrieved new accession numbers and
             requests relevant record data from NCBI Genbank
         3) Pushes new records and corresponding OTU information
@@ -160,7 +159,7 @@ async def fetcher_loop(
 
     :param otu_paths: A list of OTU paths
     :param queue: Queue holding fetched NCBI GenBank data
-    :param cache_path:
+    :param cache_path: Path to a cache directory
     :param dry_run:
     """
     logger = structlog.get_logger(__name__ + ".fetcher")
