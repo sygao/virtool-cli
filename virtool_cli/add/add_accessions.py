@@ -4,9 +4,8 @@ import structlog
 
 from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.ncbi import request_from_nucleotide
-from virtool_cli.add.helpers import is_addable, get_no_fetch_lists
+from virtool_cli.add.helpers import is_addable, get_no_fetch_lists, write_sequences_to_src
 from virtool_cli.add.format import format_record
-from virtool_cli.add.write import write_sequences_to_src
 
 base_logger = structlog.get_logger()
 

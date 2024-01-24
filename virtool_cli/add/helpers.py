@@ -2,6 +2,8 @@ from pathlib import Path
 import structlog
 from structlog import BoundLogger, get_logger
 
+from virtool_cli.update.writer import UpdateWriter
+from virtool_cli.utils.reference import get_all_unique_ids
 from virtool_cli.utils.storage import get_otu_accessions, fetch_exclusions
 from virtool_cli.utils.format import get_qualifiers
 
@@ -113,3 +115,27 @@ async def search_otu_path(
 
     logger.error("No matching OTU found in src directory.")
     return None
+
+
+async def write_sequences_to_src(
+    sequences: list,
+    otu_path: Path,
+    src_path: Path,
+    logger: BoundLogger = get_logger()
+):
+    """
+
+    """
+    isolate_ids, sequence_ids = await get_all_unique_ids(src_path)
+
+    accession_writer = UpdateWriter(src_path, isolate_ids, sequence_ids)
+
+    try:
+        new_sequence_paths = await accession_writer.write_otu_records(
+            otu_path, new_sequences=sequences, logger=logger)
+
+    except Exception as e:
+        logger.exception(e)
+        new_sequence_paths = []
+
+    return new_sequence_paths

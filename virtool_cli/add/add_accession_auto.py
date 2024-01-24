@@ -6,9 +6,8 @@ from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1
 from virtool_cli.utils.ncbi import request_from_nucleotide
 from virtool_cli.utils.cache import generate_taxid_table
-from virtool_cli.add.helpers import is_addable, search_otu_path
+from virtool_cli.add.helpers import is_addable, search_otu_path, write_sequences_to_src
 from virtool_cli.add.format import format_record
-from virtool_cli.add.write import write_sequences_to_src
 
 base_logger = structlog.get_logger()
 
