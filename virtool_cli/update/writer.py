@@ -8,7 +8,7 @@ from virtool_cli.utils.reference import (
     search_otu_by_id,
     get_unique_ids,
 )
-from virtool_cli.utils.storage import write_records, label_isolates
+from virtool_cli.utils.storage import write_records, label_isolates, store_isolate, store_sequence
 from virtool_cli.utils.format import format_isolate
 from virtool_cli.utils.id_generator import generate_unique_ids
 
@@ -74,22 +74,9 @@ class UpdateWriter:
         for seq_data in new_sequences:
             # Assign an isolate path
             isolate_data = seq_data.pop("isolate")
-            isolate_name = isolate_data["source_name"]
-            isolate_type = isolate_data["source_type"]
-
-            iso_id = self.assign_isolate_id(isolate_name, ref_isolates, logger)
-
-            if not (otu_path / iso_id).exists():
-                new_isolate = await self.init_isolate(
-                    otu_path, iso_id, isolate_name, isolate_type, logger
-                )
-                ref_isolates[isolate_name] = new_isolate
-
-                self.isolate_ids.add(iso_id)
-
-                logger.info("Created a new isolate directory", path=str(otu_path / iso_id))
-
-            iso_path = otu_path / iso_id
+            iso_path, ref_isolates = await self.assign_isolate(
+                isolate_data, ref_isolates, otu_path, logger
+            )
 
             # Assign a sequence ID and store sequence
             sequence_id = unassigned_sequence_ids.pop()
@@ -99,7 +86,7 @@ class UpdateWriter:
             )
 
             try:
-                await self.store_sequence(seq_data, sequence_id, iso_path)
+                await store_sequence(seq_data, sequence_id, iso_path)
 
             except Exception as e:
                 logger.exception(e)
@@ -114,6 +101,28 @@ class UpdateWriter:
             new_sequence_paths.append(sequence_path)
 
         return new_sequence_paths
+
+    async def assign_isolate(
+        self, isolate_data, ref_isolates, otu_path, logger
+    ) -> tuple[Path, dict]:
+        """
+        """
+        isolate_name = isolate_data["source_name"]
+        isolate_type = isolate_data["source_type"]
+
+        iso_id = self.assign_isolate_id(isolate_name, ref_isolates, logger)
+
+        if not (otu_path / iso_id).exists():
+            new_isolate = await self.init_isolate(
+                otu_path, iso_id, isolate_name, isolate_type, logger
+            )
+            ref_isolates[isolate_name] = new_isolate
+
+            self.isolate_ids.add(iso_id)
+
+            logger.info("Created a new isolate directory", path=str(otu_path / iso_id))
+
+        return otu_path / iso_id, ref_isolates
 
     def assign_isolate_id(self, isolate_name, ref_isolates, logger) -> str:
         if isolate_name in ref_isolates:
@@ -131,7 +140,6 @@ class UpdateWriter:
                 logger.exception(e)
                 return ""
 
-
     async def init_isolate(
             self, otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
     ) -> dict | None:
@@ -139,7 +147,7 @@ class UpdateWriter:
         """
         new_isolate = format_isolate(isolate_name, isolate_type, isolate_id)
 
-        await self.store_isolate(new_isolate, isolate_id, otu_path)
+        await store_isolate(new_isolate, isolate_id, otu_path)
 
         isolate_path = otu_path / f"{isolate_id}/isolate.json"
         if isolate_path.exists():
@@ -149,41 +157,6 @@ class UpdateWriter:
         else:
             logger.error("Could not initiate isolate")
             return None
-
-    @staticmethod
-    async def store_isolate(
-        isolate: dict, isolate_id: str, otu_path: Path
-    ):
-        """
-        Creates a new isolate directory and metadata file under an OTU directory,
-        then returns the metadata in dict form
-
-        :param isolate: Dictionary containing isolate metadata
-        :param isolate_id: Unique ID number for this new isolate
-        :param otu_path: Path to the parent OTU
-        :return: The unique isolate id
-        """
-        iso_path = otu_path / isolate_id
-        iso_path.mkdir()
-
-        with open(iso_path / "isolate.json", "w") as f:
-            json.dump(isolate, f, indent=4)
-
-    @staticmethod
-    async def store_sequence(sequence: dict, sequence_id: str, iso_path: Path):
-        """
-        Write sequence to isolate directory within the src directory
-
-        :param sequence: Dictionary containing formatted sequence data
-        :param sequence_id: Unique ID number for this new sequence
-        :param iso_path: Path to the parent isolate
-        :return: The unique sequence id (aka seq_hash)
-        """
-        sequence["_id"] = sequence_id
-        seq_path = iso_path / f"{sequence_id}.json"
-
-        with open(seq_path, "w") as f:
-            json.dump(sequence, f, indent=4, sort_keys=True)
 
 
 async def writer_loop(
