@@ -42,7 +42,7 @@ class UpdateWriter:
             logger = logger.bind(otu_path=str(otu_path))
 
             logger.debug("Writing packet...")
-            await write_records(
+            await self.write_otu_records(
                 otu_path=otu_path,
                 new_sequences=sequence_data,
                 logger=logger
@@ -77,7 +77,7 @@ class UpdateWriter:
             isolate_name = isolate_data["source_name"]
             isolate_type = isolate_data["source_type"]
 
-            iso_id = self.assign_isolate_id(isolate_name, ref_isolates, self.isolate_ids, logger)
+            iso_id = self.assign_isolate_id(isolate_name, ref_isolates, logger)
 
             if not (otu_path / iso_id).exists():
                 new_isolate = await self.init_isolate(
@@ -130,12 +130,14 @@ class UpdateWriter:
             except Exception as e:
                 logger.exception(e)
                 return ""
+
+
     async def init_isolate(
             self, otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
     ) -> dict | None:
         """
         """
-        new_isolate = self.format_isolate(isolate_name, isolate_type, isolate_id)
+        new_isolate = format_isolate(isolate_name, isolate_type, isolate_id)
 
         await self.store_isolate(new_isolate, isolate_id, otu_path)
 
