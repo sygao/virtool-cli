@@ -24,54 +24,51 @@ async def write_records(
     """
     ref_isolates = await label_isolates(otu_path)
 
-    try:
-        seq_hashes = generate_unique_ids(
-            n=len(new_sequences), excluded=list(unique_seq)
-        )
-    except Exception as e:
-        logger.exception(e)
-        raise e
+    unassigned_sequence_ids = generate_unique_ids(
+        n=len(new_sequences), excluded=list(unique_seq)
+    )
 
     logger.debug(f"Writing {len(new_sequences)} sequences...")
 
     new_sequence_paths = []
     for seq_data in new_sequences:
+        # Assign an isolate path
         isolate_data = seq_data.pop("isolate")
         isolate_name = isolate_data["source_name"]
+        isolate_type = isolate_data["source_type"]
 
-        iso_id = assign_isolate(isolate_name, ref_isolates, unique_iso, logger)
+        iso_id = assign_isolate_id(isolate_name, ref_isolates, unique_iso, logger)
 
         if not (otu_path / iso_id).exists():
-            new_isolate = format_isolate(
-                isolate_name, isolate_data["source_type"], iso_id
+            new_isolate = await init_isolate(
+                otu_path, iso_id, isolate_name, isolate_type, logger
             )
-
-            await store_isolate(new_isolate, iso_id, otu_path)
+            ref_isolates[isolate_name] = new_isolate
 
             unique_iso.add(iso_id)
-            ref_isolates[isolate_name] = new_isolate
 
             logger.info("Created a new isolate directory", path=str(otu_path / iso_id))
 
         iso_path = otu_path / iso_id
 
-        seq_hash = seq_hashes.pop()
+        # Assign a sequence ID and store sequence
+        sequence_id = unassigned_sequence_ids.pop()
         logger.debug(
             "Assigning new sequence",
-            seq_hash=seq_hash,
+            seq_hash=sequence_id,
         )
 
         try:
-            await store_sequence(seq_data, seq_hash, iso_path)
+            await store_sequence(seq_data, sequence_id, iso_path)
 
         except Exception as e:
             logger.exception(e)
 
-        unique_seq.add(seq_hash)
-        sequence_path = iso_path / f"{seq_hash}.json"
+        unique_seq.add(sequence_id)
+        sequence_path = iso_path / f"{sequence_id}.json"
 
         logger.info(
-            f"Wrote new sequence '{seq_hash}'", path=str(sequence_path)
+            f"Wrote new sequence '{sequence_id}'", path=str(sequence_path)
         )
 
         new_sequence_paths.append(sequence_path)
@@ -79,7 +76,28 @@ async def write_records(
     return new_sequence_paths
 
 
-def assign_isolate(isolate_name, ref_isolates, unique_iso, logger) -> str:
+async def init_isolate(
+    otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
+) -> dict | None:
+    """
+    """
+    new_isolate = format_isolate(
+        isolate_name, isolate_type, isolate_id
+    )
+
+    await store_isolate(new_isolate, isolate_id, otu_path)
+
+    isolate_path = otu_path / f"{isolate_id}/isolate.json"
+    if isolate_path.exists():
+        logger.info("Created a new isolate directory", path=str(otu_path / isolate_id))
+        return new_isolate
+
+    else:
+        logger.error("Could not initiate isolate")
+        return None
+
+
+def assign_isolate_id(isolate_name, ref_isolates, unique_iso, logger) -> str:
     if isolate_name in ref_isolates:
         iso_id = ref_isolates[isolate_name]["id"]
         logger.debug(
@@ -94,6 +112,16 @@ def assign_isolate(isolate_name, ref_isolates, unique_iso, logger) -> str:
         except Exception as e:
             logger.exception(e)
             return ""
+
+
+def extract_isolates(sequence_data):
+    isolate_names = set()
+    for data in sequence_data:
+        source_name = data['isolate']['source_name']
+        if source_name in isolate_names:
+            isolate_names.add(source_name)
+
+    return list(isolate_names)
 
 
 async def store_isolate(
