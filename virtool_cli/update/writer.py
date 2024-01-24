@@ -16,6 +16,10 @@ DEFAULT_INTERVAL = 0.001
 
 
 class UpdateWriter:
+    """
+    Writer class for batch reference updates.
+    Holds and updates sequence ids and isolate ids.
+    """
     def __init__(
         self, src_path: Path, isolate_ids: set | None = None, sequence_ids = set | None
     ):
@@ -25,11 +29,18 @@ class UpdateWriter:
         self.logger = structlog.get_logger().bind(src_path=str(src_path))
 
     async def run_loop(self, queue: asyncio.Queue):
+        """
+        Creates a writing loop which takes packets from the queue and:
+            1) Locates the OTU directory, and
+            2) Writes the new sequence to path
+
+        :param queue: An asyncio queue containing packets of processed record data
+        """
         self.logger.debug("Starting writer...")
 
         while True:
             packet = await queue.get()
-            otu_id, sequence_data = await process_packet(packet)
+            otu_id, sequence_data = await process_sequence_packet(packet)
             sequence_data = packet["data"]
 
             logger = self.logger.bind(otu_id=otu_id)
@@ -54,10 +65,18 @@ class UpdateWriter:
     async def write_otu_records(
         self,
         otu_path: Path,
-        new_sequences: list,
+        new_sequences: list[dict],
         logger: structlog.BoundLogger = structlog.get_logger(),
     ) -> list:
         """
+        Takes an OTU directory and a list of N sequences to be added under it, and:
+            1) Makes a dictionary of isolates keyed by isolate name
+            2) Generates N new unique sequence IDs
+            3) Determines the isolate path the new sequence goes under
+                a) If name exists, retrieves isolate ID from the dictionary in step 1 if found
+                b) If name does not exist, generates 1 new isolate ID and creates a new directory
+            4) Writes the new sequence under the isolate path
+
         :param otu_path: A path to an OTU directory under a src reference directory
         :param new_sequences: List of new sequences under the OTU
         :param logger: Optional entry point for a shared BoundLogger
@@ -113,7 +132,7 @@ class UpdateWriter:
         iso_id = self.assign_isolate_id(isolate_name, ref_isolates, logger)
 
         if not (otu_path / iso_id).exists():
-            new_isolate = await self.init_isolate(
+            new_isolate = await init_isolate(
                 otu_path, iso_id, isolate_name, isolate_type, logger
             )
             ref_isolates[isolate_name] = new_isolate
@@ -140,68 +159,6 @@ class UpdateWriter:
                 logger.exception(e)
                 return ""
 
-    async def init_isolate(
-            self, otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
-    ) -> dict | None:
-        """
-        """
-        new_isolate = format_isolate(isolate_name, isolate_type, isolate_id)
-
-        await store_isolate(new_isolate, isolate_id, otu_path)
-
-        isolate_path = otu_path / f"{isolate_id}/isolate.json"
-        if isolate_path.exists():
-            logger.info("Created a new isolate directory", path=str(otu_path / isolate_id))
-            return new_isolate
-
-        else:
-            logger.error("Could not initiate isolate")
-            return None
-
-
-async def writer_loop(
-    src_path: Path,
-    queue: asyncio.Queue,
-):
-    """
-    Awaits new sequence data per OTU and writes new data
-    to the correct location under the reference directory
-
-    :param src_path: Path to a reference directory
-    :param queue: Queue holding formatted sequence and isolate data processed by this loop
-    """
-    logger = structlog.get_logger()
-    logger.debug("Starting writer...")
-
-    unique_iso, unique_seq = await get_unique_ids(get_otu_paths(src_path))
-
-    while True:
-        packet = await queue.get()
-        otu_id, sequence_data = await process_packet(packet)
-
-        logger = logger.bind(otu_id=otu_id)
-
-        sequence_data = packet["data"]
-
-        otu_path = await get_otu_path(otu_id, src_path, logger)
-        if not otu_path:
-            queue.task_done()
-            continue
-
-        logger = logger.bind(otu_path=str(otu_path))
-
-        logger.debug("Writing packet...")
-        await write_records(
-            otu_path=otu_path,
-            new_sequences=sequence_data,
-            unique_iso=unique_iso,
-            unique_seq=unique_seq,
-            logger=logger
-        )
-
-        await asyncio.sleep(DEFAULT_INTERVAL)
-        queue.task_done()
-
 
 async def cacher_loop(
     src_path: Path,
@@ -220,7 +177,7 @@ async def cacher_loop(
 
     while True:
         packet = await queue.get()
-        otu_id, sequence_data = await process_packet(packet)
+        otu_id, sequence_data = await process_sequence_packet(packet)
 
         logger = logger.bind(otu_id=otu_id)
 
@@ -256,7 +213,27 @@ async def get_otu_path(otu_id, src_path, logger):
 
     return otu_path
 
-async def process_packet(packet):
+
+async def init_isolate(
+    otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
+) -> dict | None:
+    """
+    """
+    new_isolate = format_isolate(isolate_name, isolate_type, isolate_id)
+
+    await store_isolate(new_isolate, isolate_id, otu_path)
+
+    isolate_path = otu_path / f"{isolate_id}/isolate.json"
+    if isolate_path.exists():
+        logger.info("Created a new isolate directory", path=str(otu_path / isolate_id))
+        return new_isolate
+
+    else:
+        logger.error("Could not initiate isolate")
+        return None
+
+
+async def process_sequence_packet(packet):
     otu_id = packet["otu_id"]
     sequence_data = packet["data"]
 
@@ -277,3 +254,49 @@ async def cache_new_sequences(
 
     with open(summary_path, "w") as f:
         json.dump(processed_updates, f, indent=2, sort_keys=True)
+
+
+async def writer_loop(
+    src_path: Path,
+    queue: asyncio.Queue,
+):
+    """
+    DEPRECATED
+    Awaits new sequence data per OTU and writes new data
+    to the correct location under the reference directory
+
+    :param src_path: Path to a reference directory
+    :param queue: Queue holding formatted sequence and isolate data processed by this loop
+    """
+    logger = structlog.get_logger()
+    logger.debug("Starting writer...")
+
+    unique_iso, unique_seq = await get_unique_ids(get_otu_paths(src_path))
+
+    while True:
+        packet = await queue.get()
+        otu_id, sequence_data = await process_sequence_packet(packet)
+
+        logger = logger.bind(otu_id=otu_id)
+
+        sequence_data = packet["data"]
+
+        otu_path = await get_otu_path(otu_id, src_path, logger)
+        if not otu_path:
+            queue.task_done()
+            continue
+
+        logger = logger.bind(otu_path=str(otu_path))
+
+        logger.debug("Writing packet...")
+        await write_records(
+            otu_path=otu_path,
+            new_sequences=sequence_data,
+            unique_iso=unique_iso,
+            unique_seq=unique_seq,
+            logger=logger
+        )
+
+        await asyncio.sleep(DEFAULT_INTERVAL)
+        queue.task_done()
+

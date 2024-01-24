@@ -7,7 +7,7 @@ from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1, get_unique_ids, get_otu_paths
 from virtool_cli.utils.storage import read_otu
 from virtool_cli.update.update import request_new_records, get_no_fetch_set, process_records
-from virtool_cli.update.writer import writer_loop, cacher_loop, UpdateWriter
+from virtool_cli.update.writer import cacher_loop, UpdateWriter
 
 DEFAULT_INTERVAL = 0.001
 

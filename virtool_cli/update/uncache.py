@@ -5,7 +5,7 @@ import structlog
 
 from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1, get_unique_ids, get_otu_paths
-from virtool_cli.update.writer import writer_loop, UpdateWriter
+from virtool_cli.update.writer import UpdateWriter
 
 DEFAULT_INTERVAL = 0.001
 
