@@ -8,74 +8,6 @@ from virtool_cli.utils.id_generator import generate_unique_ids
 from virtool_cli.utils.format import format_isolate
 
 
-async def write_records(
-    otu_path: Path,
-    new_sequences: list,
-    unique_iso: set,
-    unique_seq: set,
-    logger: structlog.BoundLogger = structlog.get_logger(),
-) -> list:
-    """
-    :param otu_path: A path to an OTU directory under a src reference directory
-    :param new_sequences: List of new sequences under the OTU
-    :param unique_iso: Set of all unique isolate IDs present in the reference
-    :param unique_seq: Set of all unique sequence IDs present in the reference
-    :param logger: Optional entry point for a shared BoundLogger
-    """
-    ref_isolates = await label_isolates(otu_path)
-
-    unassigned_sequence_ids = generate_unique_ids(
-        n=len(new_sequences), excluded=list(unique_seq)
-    )
-
-    logger.debug(f"Writing {len(new_sequences)} sequences...")
-
-    new_sequence_paths = []
-    for seq_data in new_sequences:
-        # Assign an isolate path
-        isolate_data = seq_data.pop("isolate")
-        isolate_name = isolate_data["source_name"]
-        isolate_type = isolate_data["source_type"]
-
-        iso_id = assign_isolate_id(isolate_name, ref_isolates, unique_iso, logger)
-
-        if not (otu_path / iso_id).exists():
-            new_isolate = await init_isolate(
-                otu_path, iso_id, isolate_name, isolate_type, logger
-            )
-            ref_isolates[isolate_name] = new_isolate
-
-            unique_iso.add(iso_id)
-
-            logger.info("Created a new isolate directory", path=str(otu_path / iso_id))
-
-        iso_path = otu_path / iso_id
-
-        # Assign a sequence ID and store sequence
-        sequence_id = unassigned_sequence_ids.pop()
-        logger.debug(
-            "Assigning new sequence",
-            seq_hash=sequence_id,
-        )
-
-        try:
-            await store_sequence(seq_data, sequence_id, iso_path)
-
-        except Exception as e:
-            logger.exception(e)
-
-        unique_seq.add(sequence_id)
-        sequence_path = iso_path / f"{sequence_id}.json"
-
-        logger.info(
-            f"Wrote new sequence '{sequence_id}'", path=str(sequence_path)
-        )
-
-        new_sequence_paths.append(sequence_path)
-
-    return new_sequence_paths
-
-
 async def init_isolate(
     otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
 ) -> dict | None:
@@ -272,4 +204,74 @@ async def fetch_exclusions(otu_path: Path) -> list:
         exclusions = json.loads(contents)
 
     return exclusions
+
+
+async def write_records(
+        otu_path: Path,
+        new_sequences: list,
+        unique_iso: set,
+        unique_seq: set,
+        logger: structlog.BoundLogger = structlog.get_logger(),
+) -> list:
+    """
+    DEPRECATED
+
+    :param otu_path: A path to an OTU directory under a src reference directory
+    :param new_sequences: List of new sequences under the OTU
+    :param unique_iso: Set of all unique isolate IDs present in the reference
+    :param unique_seq: Set of all unique sequence IDs present in the reference
+    :param logger: Optional entry point for a shared BoundLogger
+    """
+    ref_isolates = await label_isolates(otu_path)
+
+    unassigned_sequence_ids = generate_unique_ids(
+        n=len(new_sequences), excluded=list(unique_seq)
+    )
+
+    logger.debug(f"Writing {len(new_sequences)} sequences...")
+
+    new_sequence_paths = []
+    for seq_data in new_sequences:
+        # Assign an isolate path
+        isolate_data = seq_data.pop("isolate")
+        isolate_name = isolate_data["source_name"]
+        isolate_type = isolate_data["source_type"]
+
+        iso_id = assign_isolate_id(isolate_name, ref_isolates, unique_iso, logger)
+
+        if not (otu_path / iso_id).exists():
+            new_isolate = await init_isolate(
+                otu_path, iso_id, isolate_name, isolate_type, logger
+            )
+            ref_isolates[isolate_name] = new_isolate
+
+            unique_iso.add(iso_id)
+
+            logger.info("Created a new isolate directory", path=str(otu_path / iso_id))
+
+        iso_path = otu_path / iso_id
+
+        # Assign a sequence ID and store sequence
+        sequence_id = unassigned_sequence_ids.pop()
+        logger.debug(
+            "Assigning new sequence",
+            seq_hash=sequence_id,
+        )
+
+        try:
+            await store_sequence(seq_data, sequence_id, iso_path)
+
+        except Exception as e:
+            logger.exception(e)
+
+        unique_seq.add(sequence_id)
+        sequence_path = iso_path / f"{sequence_id}.json"
+
+        logger.info(
+            f"Wrote new sequence '{sequence_id}'", path=str(sequence_path)
+        )
+
+        new_sequence_paths.append(sequence_path)
+
+    return new_sequence_paths
 

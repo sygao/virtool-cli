@@ -3,10 +3,12 @@ import asyncio
 import structlog
 
 from virtool_cli.utils.logging import configure_logger
-from virtool_cli.utils.reference import get_otu_paths, get_unique_ids
-from virtool_cli.utils.storage import read_otu, write_records
-from virtool_cli.update.update import get_no_fetch_set, request_new_records, process_records
-from virtool_cli.reference.writers import cache_new_sequences
+from virtool_cli.utils.reference import get_all_unique_ids
+from virtool_cli.utils.storage import read_otu
+from virtool_cli.reference.writers import SequenceWriter, cache_new_sequences
+from virtool_cli.update.update import (
+    get_no_fetch_set, request_new_records, process_records
+)
 
 base_logger = structlog.get_logger()
 
@@ -54,9 +56,6 @@ async def update_otu(
     """
     src_path = otu_path.parent
 
-    # List all isolate and sequence IDs presently in src
-    unique_iso, unique_seq = await get_unique_ids(get_otu_paths(src_path))
-
     metadata = await read_otu(otu_path)
 
     no_fetch_set = await get_no_fetch_set(otu_path)
@@ -96,4 +95,12 @@ async def update_otu(
         if not update_cache_path / f"{otu_id}.json".exists():
             logger.error("Write failed")
     else:
-        await write_records(otu_path, otu_updates, unique_iso, unique_seq, logger=logger)
+        unique_iso, unique_seq = await get_all_unique_ids(src_path)
+
+        seq_writer = SequenceWriter(src_path, unique_iso, unique_seq)
+
+        new_sequence_paths = await seq_writer.write_otu_records(
+            otu_path, otu_updates, logger
+        )
+
+    print(new_sequence_paths)

@@ -3,12 +3,10 @@ from pathlib import Path
 import asyncio
 import structlog
 
-from virtool_cli.utils.reference import search_otu_by_id, get_all_unique_ids
+from virtool_cli.utils.reference import search_otu_by_id
 from virtool_cli.utils.id_generator import generate_unique_ids
 from virtool_cli.utils.format import format_isolate
-from virtool_cli.utils.storage import (
-    write_records, label_isolates, store_isolate, store_sequence
-)
+from virtool_cli.utils.storage import label_isolates, store_isolate, store_sequence
 
 DEFAULT_INTERVAL = 0.001
 
