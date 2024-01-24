@@ -4,8 +4,8 @@ import asyncio
 import structlog
 
 from virtool_cli.utils.logging import configure_logger
-from virtool_cli.utils.reference import is_v1
-from virtool_cli.update.writer import writer_loop
+from virtool_cli.utils.reference import is_v1, get_unique_ids, get_otu_paths
+from virtool_cli.update.writer import writer_loop, UpdateWriter
 
 DEFAULT_INTERVAL = 0.001
 
@@ -76,9 +76,21 @@ async def update_reference_from_cache(
 
     # Pulls formatted sequences from queue, checks isolate metadata
     # and writes json to the correct location in the src directory
-    asyncio.create_task(
-        writer_loop(src_path, queue)
+
+    unique_iso, unique_seq = await get_unique_ids(get_otu_paths(src_path))
+    update_writer = UpdateWriter(
+        src_path=src_path, isolate_ids=unique_iso, sequence_ids=unique_seq
     )
+    # Pulls formatted sequences from write queue, checks isolate metadata
+    # and writes json to the correct location in the src directory
+    asyncio.create_task(
+        update_writer.run_loop(queue)
+        # writer_loop(src_path, write_queue)
+    )
+
+    # asyncio.create_task(
+    #     writer_loop(src_path, queue)
+    # )
 
     await asyncio.gather(*[loader], return_exceptions=True)
 
