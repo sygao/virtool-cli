@@ -36,4 +36,6 @@ from virtool_cli.utils.storage import get_otu_accessions
 async def test_utils_get_otu_accessions(
     otu_dir_name: str, result: list[str], src_test_path: Path
 ):
-    assert get_otu_accessions(src_test_path / otu_dir_name) == result
+    otu_accessions = await get_otu_accessions(src_test_path / otu_dir_name)
+    
+    assert set(otu_accessions) == set(result)

@@ -25,7 +25,7 @@ async def is_addable(
     logger: BoundLogger = structlog.get_logger(),
 ):
     if extant_list is None:
-        extant_list = get_otu_accessions(otu_path)
+        extant_list = await get_otu_accessions(otu_path)
     if exclusion_list is None:
         exclusion_list = await fetch_exclusions(otu_path)
 
