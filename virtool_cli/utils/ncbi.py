@@ -1,6 +1,7 @@
 import os
 import asyncio
 from Bio import Entrez, SeqIO
+from urllib.request import urlopen
 from urllib.error import HTTPError
 from http.client import IncompleteRead
 
@@ -73,6 +74,34 @@ async def request_from_nucleotide(fetch_list: list) -> list:
     
     except Exception as e:
         raise e
+
+
+async def request_xml_from_nucleotide(fetch_list: list) -> list:
+    """
+    Take a list of accession numbers and request the corresponding records from NCBI Nucleotide
+
+    :param fetch_list: List of accession numbers to fetch from GenBank
+    :return: A list of GenBank data converted from GenBank entries to dicts if possible,
+        else an empty list
+    """
+    try:
+        handle = Entrez.efetch(
+            db="nuccore", id=fetch_list,
+            rettype="gb", retmode="xml"
+        )
+        records = Entrez.read(handle)
+
+        handle.close()
+
+    except IncompleteRead:
+        raise HTTPError("IncompleteRead")
+    except HTTPError as e:
+        raise e
+
+    if records is None:
+        return []
+
+    return records
 
 
 async def fetch_taxid(name: str) -> int:

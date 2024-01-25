@@ -3,7 +3,7 @@ from pathlib import Path
 import asyncio
 import structlog
 
-from virtool_cli.utils.reference import search_otu_by_id
+from virtool_cli.utils.reference import search_otu_by_id, get_otu_paths, get_isolate_paths, get_sequence_paths
 from virtool_cli.utils.id_generator import generate_unique_ids
 from virtool_cli.utils.format import format_isolate
 from virtool_cli.utils.storage import label_isolates, store_isolate, store_sequence
@@ -17,12 +17,40 @@ class SequenceWriter:
     Holds and updates sequence ids and isolate ids.
     """
     def __init__(
-        self, src_path: Path, isolate_ids: set | None = None, sequence_ids = set | None
+        self,
+        src_path: Path,
+        isolate_ids: set | None = None,
+        sequence_ids: set | None = None
     ):
         self.src_path = src_path
         self.isolate_ids = set() if isolate_ids is None else isolate_ids
         self.sequence_ids = set() if sequence_ids is None else sequence_ids
         self.logger = structlog.get_logger().bind(src_path=str(src_path))
+
+    async def fill_id_data(self):
+        """
+        Fills metadata fields
+
+        :param otu_paths: List of paths to all OTU in a reference
+        :return: Sets containing unique ids for both isolates and sequences
+        """
+        otu_id_map = dict()
+        isolate_ids = set()
+        sequence_ids = set()
+
+        for otu_path in get_otu_paths(self.src_path):
+            otu_id = otu_path.name.split("--")[1]
+            otu_id_map[otu_id] = otu_path
+
+            for isolate_path in get_isolate_paths(otu_path):
+                isolate_ids.add(isolate_path.name)
+
+                for seq_path in get_sequence_paths(isolate_path):
+                    sequence_ids.add(seq_path.stem)
+
+        self.otu_id_map = otu_id_map
+        self.isolate_ids = isolate_ids
+        self.sequence_ids = sequence_ids
 
     async def run_loop(self, queue: asyncio.Queue):
         """
@@ -41,7 +69,9 @@ class SequenceWriter:
 
             logger = self.logger.bind(otu_id=otu_id)
 
-            otu_path = await search_otu_path_by_id(otu_id, self.src_path, logger)
+            otu_path = await search_otu_path_by_id(
+                otu_id, self.src_path, logger
+            )
             if not otu_path:
                 queue.task_done()
                 continue
