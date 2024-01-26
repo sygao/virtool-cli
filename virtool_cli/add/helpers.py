@@ -3,14 +3,14 @@ import structlog
 from Bio.SeqRecord import SeqRecord
 from structlog import BoundLogger, get_logger
 
-from virtool_cli.reference.writers import SequenceWriter
+from virtool_cli.utils.writers import SequenceWriter
 from virtool_cli.utils.reference import get_all_unique_ids
 from virtool_cli.utils.storage import get_otu_accessions, fetch_exclusions
 from virtool_cli.utils.format import get_qualifiers
 
 
 async def get_no_fetch_lists(otu_path):
-    extant_list = get_otu_accessions(otu_path)
+    extant_list = await get_otu_accessions(otu_path)
     exclusion_list = await fetch_exclusions(otu_path)
 
     return extant_list, exclusion_list

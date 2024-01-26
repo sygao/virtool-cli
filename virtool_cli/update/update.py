@@ -14,7 +14,7 @@ from virtool_cli.utils.storage import get_otu_accessions, fetch_exclusions
 
 async def get_no_fetch_set(otu_path: Path):
     """ """
-    included = get_otu_accessions(otu_path)
+    included = await get_otu_accessions(otu_path)
     excluded = await fetch_exclusions(otu_path)
 
     return set(included + excluded)
