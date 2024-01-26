@@ -6,7 +6,7 @@ from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import get_all_unique_ids
 from virtool_cli.utils.storage import read_otu
 from virtool_cli.utils.writers import SequenceWriter, cache_new_sequences
-from virtool_cli.update.update import (
+from virtool_cli.update.helpers import (
     get_no_fetch_set, request_new_records, process_records
 )
 
