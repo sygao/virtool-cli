@@ -4,13 +4,10 @@ import structlog
 from Bio.SeqRecord import SeqRecord
 from structlog import BoundLogger, get_logger
 
+from virtool_cli.ref.writers import SequenceWriter
 from virtool_cli.utils.format import get_qualifiers
 from virtool_cli.utils.reference import get_otu_paths, get_unique_ids
-from virtool_cli.utils.storage import (
-    fetch_exclusions,
-    get_otu_accessions,
-    write_records,
-)
+from virtool_cli.utils.storage import fetch_exclusions, get_otu_accessions
 
 
 async def get_no_fetch_lists(otu_path):
@@ -124,16 +121,13 @@ async def write_sequences_to_src(
     logger: BoundLogger = get_logger(),
 ):
     """ """
-    isolate_uids, sequence_uids = await get_unique_ids(get_otu_paths(src_path))
+    isolate_ids, sequence_ids = await get_unique_ids(get_otu_paths(src_path))
+
+    accession_writer = SequenceWriter(src_path, isolate_ids, sequence_ids)
 
     try:
-        new_sequence_paths = await write_records(
-            otu_path,
-            new_sequences=sequences,
-            unique_iso=isolate_uids,
-            unique_seq=sequence_uids,
-            logger=logger,
-        )
+        new_sequence_paths = await accession_writer.write_otu_records(
+            otu_path, new_sequences=sequences, logger=logger)
 
     except Exception as e:
         logger.exception(e)
