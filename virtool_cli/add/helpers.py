@@ -29,7 +29,8 @@ async def is_addable(
     logger: BoundLogger = structlog.get_logger(),
 ):
     if extant_list is None:
-        extant_list = get_otu_accessions(otu_path)
+        extant_list = await get_otu_accessions(otu_path)
+
     if exclusion_list is None:
         exclusion_list = await fetch_exclusions(otu_path)
 
@@ -115,5 +116,27 @@ async def search_otu_path(
 
     return None
 
-    except Exception as e:
+
+async def write_sequences_to_src(
+    sequences: list,
+    otu_path: Path,
+    src_path: Path,
+    logger: BoundLogger = get_logger(),
 ):
+    """ """
+    isolate_uids, sequence_uids = await get_unique_ids(get_otu_paths(src_path))
+
+    try:
+        new_sequence_paths = await write_records(
+            otu_path,
+            new_sequences=sequences,
+            unique_iso=isolate_uids,
+            unique_seq=sequence_uids,
+            logger=logger,
+        )
+
+    except Exception as e:
+        logger.exception(e)
+        new_sequence_paths = []
+
+    return new_sequence_paths
