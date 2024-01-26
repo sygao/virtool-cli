@@ -7,9 +7,11 @@ from virtool_cli.check.cli import check
 from virtool_cli.ref.build import run as run_build
 from virtool_cli.ref.divide import run as run_divide
 from virtool_cli.ref.init import init_reference
+from virtool_cli.ref.clean import run as run_clean
 from virtool_cli.ref.migrate import run as run_migrate
 from virtool_cli.update.cli import update
 from virtool_cli.utils.logging import configure_logger
+from virtool_cli.options import debug_option, path_option
 
 ERROR_MESSAGE = click.style("ERROR: ", fg="red")
 
@@ -36,6 +38,15 @@ def init(debug: bool, path: Path):
     """Instantiate directory structure for an empty reference source"""
     configure_logger(debug)
     init_reference(path)
+
+
+@ref.command()
+@debug_option
+@path_option
+def clean(debug: bool, path: Path):
+    """Instantiate directory structure for an empty reference source"""
+    configure_logger(debug)
+    run_clean(path, debug)
 
 
 @ref.command()

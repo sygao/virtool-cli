@@ -1,17 +1,15 @@
 from pathlib import Path
 import click
 
-from virtool_cli.update.batch import run as run_update_all
+from virtool_cli.update.batch import run as run_update_batch
 from virtool_cli.update.otu import run as run_update_single
 from virtool_cli.update.uncache import run as run_update_uncache
+from virtool_cli.options import debug_option, path_option
 
 
 @click.group("update")
 def update():
-    """
-    Commands related to updates
-    """
-    pass
+    """Commands related to updates"""
 
 
 @update.command()
@@ -38,15 +36,11 @@ def update():
     default=False,
     help="Enable auto-evaluation"
 )
-@click.option(
-    "--debug/--no-debug",
-    default=False,
-    help="Enable debugging logs"
-)
+@debug_option
 def reference(src_path, filter, evaluate, dry, debug):
     """Fetch new NCBI data for all OTU in a given reference directory."""
     try:
-        run_update_all(src_path, filter, auto_evaluate=evaluate, dry_run=dry, debugging=debug)
+        run_update_batch(src_path, filter, auto_evaluate=evaluate, dry_run=dry, debugging=debug)
     except (FileNotFoundError, NotADirectoryError) as e:
         click.echo("Not a valid reference directory", err=True)
 
@@ -69,11 +63,7 @@ def reference(src_path, filter, evaluate, dry, debug):
     default=False,
     help="Enable auto-evaluation"
 )
-@click.option(
-    "--debug/--no-debug",
-    default=False,
-    help="Enable debugging logs"
-)
+@debug_option
 def otu(otu_path, evaluate, dry, debug):
     """Fetch new NCBI data for a given OTU directory."""
 
@@ -106,11 +96,7 @@ def otu(otu_path, evaluate, dry, debug):
     default=False,
     help="Enable auto-evaluation ()"
 )
-@click.option(
-    "--debug/--no-debug",
-    default=False,
-    help="Enable debugging logs"
-)
+@debug_option
 def uncache(cache_path, src_path, evaluate, debug):
     """
         Write cached sequence data under reference directory.
