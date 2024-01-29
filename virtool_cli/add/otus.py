@@ -4,10 +4,9 @@ from urllib.error import HTTPError
 
 import click
 
-from virtool_cli.utils.cache import generate_taxid_table
 from virtool_cli.utils.id_generator import generate_unique_ids
 from virtool_cli.utils.ncbi import fetch_taxonomy_record
-from virtool_cli.utils.reference import generate_otu_dirname, get_unique_otu_ids, is_v1
+from virtool_cli.utils.reference import generate_otu_dirname, get_unique_otu_ids, is_v1, generate_taxid_table
 
 OTU_KEYS = ["_id", "name", "abbreviation", "schema", "taxid"]
 

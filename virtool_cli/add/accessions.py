@@ -11,9 +11,8 @@ from virtool_cli.add.helpers import (
     write_sequences_to_src,
 )
 from virtool_cli.check.checkup import verify_accession
-from virtool_cli.utils.cache import generate_taxid_table
 from virtool_cli.utils.ncbi import request_from_nucleotide
-from virtool_cli.utils.reference import is_v1
+from virtool_cli.utils.reference import is_v1, generate_taxid_table
 
 
 async def add_accession(accession: str, path: Path):
