@@ -7,7 +7,9 @@ from virtool_cli.utils.reference import get_all_unique_ids
 from virtool_cli.utils.otu import read_otu
 from virtool_cli.ref.writers import SequenceWriter, cache_new_sequences
 from virtool_cli.update.helpers import (
-    get_no_fetch_set, request_new_records, process_records
+    get_no_fetch_set,
+    request_new_records,
+    process_records,
 )
 
 base_logger = structlog.get_logger()
@@ -60,8 +62,8 @@ async def update_otu(
 
     no_fetch_set = await get_no_fetch_set(otu_path)
 
-    otu_id = metadata.get('_id')
-    taxid = metadata.get('taxid')
+    otu_id = metadata.get("_id")
+    taxid = metadata.get("taxid")
 
     logger = base_logger.bind(taxid=taxid, otu_id=otu_id)
 
@@ -80,7 +82,7 @@ async def update_otu(
         metadata=metadata,
         no_fetch_set=no_fetch_set,
         auto_evaluate=auto_evaluate,
-        logger=logger
+        logger=logger,
     )
     if not otu_updates:
         return

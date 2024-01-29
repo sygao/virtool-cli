@@ -6,7 +6,11 @@ from urllib.error import HTTPError
 from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1, get_all_unique_ids
 from virtool_cli.utils.otu import read_otu
-from virtool_cli.update.helpers import request_new_records, get_no_fetch_set, process_records
+from virtool_cli.update.helpers import (
+    request_new_records,
+    get_no_fetch_set,
+    process_records,
+)
 from virtool_cli.ref.writers import cacher_loop, SequenceWriter
 
 DEFAULT_INTERVAL = 0.001
@@ -55,7 +59,11 @@ def run(
 
     asyncio.run(
         update_reference(
-            src_path=src_path, filter=filter, auto_evaluate=auto_evaluate, dry_run=dry_run)
+            src_path=src_path,
+            filter=filter,
+            auto_evaluate=auto_evaluate,
+            dry_run=dry_run,
+        )
     )
 
 
@@ -63,7 +71,7 @@ async def update_reference(
     src_path: Path,
     filter: str = "*",
     auto_evaluate: bool = False,
-    dry_run: bool = False
+    dry_run: bool = False,
 ):
     """
     Creates 2 queues:
@@ -108,7 +116,10 @@ async def update_reference(
     # and pushes results to upstream queue
     fetcher = asyncio.create_task(
         fetcher_loop(
-            otu_paths, queue=upstream_queue, cache_path=update_cache_path, dry_run=dry_run
+            otu_paths,
+            queue=upstream_queue,
+            cache_path=update_cache_path,
+            dry_run=dry_run,
         )
     )
 
@@ -121,9 +132,7 @@ async def update_reference(
     if dry_run:
         # Pulls formatted sequence list from write queue and
         # writes the list to "{otu_id}.json" under the cache path
-        asyncio.create_task(
-            cacher_loop(src_path, update_cache_path, write_queue)
-        )
+        asyncio.create_task(cacher_loop(src_path, update_cache_path, write_queue))
     else:
         unique_iso, unique_seq = await get_all_unique_ids(src_path)
         update_writer = SequenceWriter(
@@ -170,8 +179,8 @@ async def fetcher_loop(
 
         logger.debug(otu_metadata)
 
-        otu_id = otu_metadata['_id']
-        taxid = otu_metadata.get('taxid', None)
+        otu_id = otu_metadata["_id"]
+        taxid = otu_metadata.get("taxid", None)
         logger = logger.bind(taxid=taxid, otu_id=otu_id)
 
         if taxid is None:
@@ -281,4 +290,3 @@ async def filter_otu_paths(src_path: Path, filter: str = "*") -> list[Path]:
             filtered_paths.append(path)
 
     return filtered_paths
-

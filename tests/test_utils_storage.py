@@ -37,5 +37,5 @@ async def test_utils_get_otu_accessions(
     otu_dir_name: str, result: list[str], src_test_path: Path
 ):
     otu_accessions = await get_otu_accessions(src_test_path / otu_dir_name)
-    
+
     assert set(otu_accessions) == set(result)

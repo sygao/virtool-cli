@@ -127,7 +127,8 @@ async def write_sequences_to_src(
 
     try:
         new_sequence_paths = await accession_writer.write_otu_records(
-            otu_path, new_sequences=sequences, logger=logger)
+            otu_path, new_sequences=sequences, logger=logger
+        )
 
     except Exception as e:
         logger.exception(e)

@@ -4,12 +4,14 @@ import asyncio
 import structlog
 
 from virtool_cli.utils.reference import (
-    search_otu_by_id, get_otu_paths, get_isolate_paths, get_sequence_paths
+    search_otu_by_id,
+    get_otu_paths,
+    get_isolate_paths,
+    get_sequence_paths,
 )
 from virtool_cli.utils.id_generator import generate_unique_ids
 from virtool_cli.utils.format import format_isolate
-from virtool_cli.utils.storage import store_isolate, store_sequence
-from virtool_cli.utils.otu import label_isolates
+from virtool_cli.utils.otu import label_isolates, store_isolate, store_sequence
 
 DEFAULT_INTERVAL = 0.001
 
@@ -19,11 +21,12 @@ class SequenceWriter:
     Writer class for batch reference updates.
     Holds and updates sequence ids and isolate ids.
     """
+
     def __init__(
         self,
         src_path: Path,
         isolate_ids: set | None = None,
-        sequence_ids: set | None = None
+        sequence_ids: set | None = None,
     ):
         self.src_path = src_path
         # self.otu_id_map = dict()
@@ -73,9 +76,7 @@ class SequenceWriter:
 
             logger = self.logger.bind(otu_id=otu_id)
 
-            otu_path = await search_otu_path_by_id(
-                otu_id, self.src_path, logger
-            )
+            otu_path = await search_otu_path_by_id(otu_id, self.src_path, logger)
             if not otu_path:
                 logger.error("Matching OTU id not found! Moving on...")
                 queue.task_done()
@@ -85,9 +86,7 @@ class SequenceWriter:
 
             logger.debug("Writing packet...")
             await self.write_otu_records(
-                otu_path=otu_path,
-                new_sequences=sequence_data,
-                logger=logger
+                otu_path=otu_path, new_sequences=sequence_data, logger=logger
             )
 
             await asyncio.sleep(DEFAULT_INTERVAL)
@@ -144,9 +143,7 @@ class SequenceWriter:
             self.sequence_ids.add(sequence_id)
             sequence_path = iso_path / f"{sequence_id}.json"
 
-            logger.info(
-                f"Wrote new sequence '{sequence_id}'", path=str(sequence_path)
-            )
+            logger.info(f"Wrote new sequence '{sequence_id}'", path=str(sequence_path))
 
             new_sequence_paths.append(sequence_path)
 
@@ -155,8 +152,7 @@ class SequenceWriter:
     async def assign_isolate(
         self, isolate_data, ref_isolates, otu_path, logger
     ) -> tuple[Path, dict]:
-        """
-        """
+        """ """
         isolate_name = isolate_data["source_name"]
         isolate_type = isolate_data["source_type"]
 
@@ -223,11 +219,11 @@ async def cacher_loop(
         logger.debug("Writing packet...")
 
         await cache_new_sequences(sequence_data, otu_id, cache_path)
-        cached_update_path = (cache_path / f"{otu_id}.json")
+        cached_update_path = cache_path / f"{otu_id}.json"
         if cached_update_path.exists():
             logger.debug(
                 "Wrote summary to cache.",
-                cached_update_path=str((cache_path / f"{otu_id}.json"))
+                cached_update_path=str((cache_path / f"{otu_id}.json")),
             )
 
         await asyncio.sleep(DEFAULT_INTERVAL)
@@ -249,6 +245,7 @@ async def init_isolate(
     otu_path: Path, isolate_id: str, isolate_name: str, isolate_type: str, logger
 ) -> dict | None:
     """
+    Initialize isolate under a given isolate ID
     """
     new_isolate = format_isolate(isolate_name, isolate_type, isolate_id)
 
