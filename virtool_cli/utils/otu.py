@@ -84,6 +84,11 @@ async def read_otu(path: Path) -> dict:
 
 
 async def fetch_exclusions(otu_path: Path) -> list:
+    """
+    Returns a list of accessions from "{otu_path}/exclusions.json"
+
+    :param otu_path:
+    """
     async with aiofiles.open(otu_path / "exclusions.json", "r") as f:
         contents = await f.read()
         exclusions = json.loads(contents)
@@ -113,7 +118,10 @@ async def get_sequence_metadata(sequence_path: Path) -> dict:
     return sequence_metadata
 
 
-async def parse_sequence(path):
+async def parse_sequence(path) -> dict:
+    """
+    :param path: Path to a sequence file under an isolate directory
+    """
     async with aiofiles.open(path, "r") as f:
         contents = await f.read()
         sequence = json.loads(contents)
