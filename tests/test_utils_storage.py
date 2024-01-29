@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from virtool_cli.utils.storage import get_otu_accessions
+from virtool_cli.utils.otu import get_otu_accessions
 
 
 @pytest.mark.parametrize(

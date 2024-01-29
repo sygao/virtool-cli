@@ -5,7 +5,7 @@ from urllib.error import HTTPError
 
 from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import is_v1, get_all_unique_ids
-from virtool_cli.utils.storage import read_otu
+from virtool_cli.utils.otu import read_otu
 from virtool_cli.update.helpers import request_new_records, get_no_fetch_set, process_records
 from virtool_cli.ref.writers import cacher_loop, SequenceWriter
 

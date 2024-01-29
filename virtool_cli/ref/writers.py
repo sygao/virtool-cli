@@ -8,7 +8,8 @@ from virtool_cli.utils.reference import (
 )
 from virtool_cli.utils.id_generator import generate_unique_ids
 from virtool_cli.utils.format import format_isolate
-from virtool_cli.utils.storage import label_isolates, store_isolate, store_sequence
+from virtool_cli.utils.storage import store_isolate, store_sequence
+from virtool_cli.utils.otu import label_isolates
 
 DEFAULT_INTERVAL = 0.001
 

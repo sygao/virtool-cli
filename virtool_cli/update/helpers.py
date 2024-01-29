@@ -9,7 +9,7 @@ from virtool_cli.utils.ncbi import (
     request_from_nucleotide,
     NCBI_REQUEST_INTERVAL,
 )
-from virtool_cli.utils.storage import get_otu_accessions, fetch_exclusions
+from virtool_cli.utils.otu import get_otu_accessions, fetch_exclusions
 
 
 async def get_no_fetch_set(otu_path: Path):

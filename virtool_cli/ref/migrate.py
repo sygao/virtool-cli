@@ -5,7 +5,7 @@ import json
 
 from virtool_cli.utils.logging import configure_logger
 from virtool_cli.utils.reference import generate_otu_dirname, is_v1
-from virtool_cli.utils.storage import read_otu
+from virtool_cli.utils.otu import read_otu
 
 base_logger = structlog.get_logger()
 

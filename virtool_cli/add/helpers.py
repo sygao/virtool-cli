@@ -7,7 +7,7 @@ from structlog import BoundLogger, get_logger
 from virtool_cli.ref.writers import SequenceWriter
 from virtool_cli.utils.format import get_qualifiers
 from virtool_cli.utils.reference import get_otu_paths, get_unique_ids
-from virtool_cli.utils.storage import fetch_exclusions, get_otu_accessions
+from virtool_cli.utils.otu import get_otu_accessions, fetch_exclusions
 
 
 async def get_no_fetch_lists(otu_path):
