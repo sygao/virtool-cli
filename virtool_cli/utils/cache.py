@@ -2,13 +2,10 @@ from pathlib import Path
 import json
 
 
-def write_to_cache(data: dict, cache: Path):
-    with open(cache / "taxid_table.json", "w") as f:
-        json.dump(data, f, indent=2)
-
-
-def generate_taxid_table(src_path: Path):
+def generate_taxid_table(src_path: Path) -> dict:
     """
+    Creates a dictionary of taxid: otu_path key-pairs
+
     :param src_path:
     """
     taxid_table = {}
@@ -26,7 +23,7 @@ def generate_taxid_table(src_path: Path):
     return taxid_table
 
 
-def is_otu_directory(path):
+def is_otu_directory(path: Path) -> bool:
     if path.is_dir:
         if (path / "otu.json").exists():
             return True
