@@ -47,7 +47,7 @@ def init(debug: bool, path: Path):
 def clean(debug: bool, path: Path):
     """Instantiate directory structure for an empty reference source"""
     configure_logger(debug)
-    run_clean(path, debug)
+    run_clean(path)
 
 
 @ref.command()
