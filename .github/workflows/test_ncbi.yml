@@ -1,21 +1,14 @@
-name: Run NCBI tests
+name: Comment on the pull request
+
 on:
-  pull_request_target:
-    branches: [alpha]
+  workflow_run:
+    workflows: ["ci"]
 
 jobs:
-  authorize:
-    environment:
-      ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      'external' || 'internal' }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
-
   test-ncbi:
-    needs: authorize
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
