@@ -16,7 +16,7 @@ jobs:
   autorun-ncbi-tests:
     needs: authorize
     runs-on: ubuntu-22.04
-    name: Runs tests
+    name: Autoruns NCBI tests
 
     steps:
       - name: Checkout
