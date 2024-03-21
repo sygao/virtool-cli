@@ -1,10 +1,17 @@
-name: Test NCBI
+name: Run tests
 on:
   workflow_dispatch:
+    inputs:
+      ncbi:
+        description: 'Test NCBI server fetches'
+        type: boolean
+        default: false
 
 jobs:
-  test_ncbi:
+  run-tests:
     runs-on: ubuntu-22.04
+    name: Runs tests
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -14,7 +21,7 @@ jobs:
           python-version: "3.12"
       - name: Load cached Poetry installation
         id: cached-poetry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.local
           key: poetry-0
@@ -23,7 +30,10 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install packages
         run: poetry install
-      - name: Test
+      - name: Test non-NCBI
+        run: poetry run pytest -m "not ncbi" --disable-socket --allow-unix-socket
+      - name: Test NCBI
+        if: inputs.ncbi == true
         run: poetry run pytest -m "ncbi"
         env:
           NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
