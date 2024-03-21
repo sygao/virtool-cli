@@ -11,13 +11,7 @@ from urllib.parse import quote_plus
 from urllib.error import HTTPError
 from pydantic import ValidationError
 
-from virtool_cli.ncbi.model import (
-    NCBINuccore,
-    NCBITaxonomy,
-    NCBIDatabase,
-    NCBILineage,
-    NCBIRank,
-)
+from virtool_cli.ncbi.model import NCBINuccore, NCBITaxonomy, NCBIDatabase, NCBIRank
 from virtool_cli.ncbi.cache import NCBICache
 
 Entrez.email = os.environ.get("NCBI_EMAIL")
@@ -262,15 +256,13 @@ class NCBIClient:
         """
         logger = base_logger.bind(taxid=taxid)
 
+        record = None
         if not self.ignore_cache:
             record = self.cache.load_taxonomy(taxid)
             if record:
                 logger.info("Cached record found")
-            else:
-                logger.info("Cached record not found. Fetching from taxonomy...")
-                record = await NCBIClient._fetch_taxonomy_record(taxid)
 
-        else:
+        if record is None:
             logger.debug("Fetching record from Taxonomy...")
 
             with log_http_error():
@@ -278,21 +270,33 @@ class NCBIClient:
                     record = await NCBIClient._fetch_taxonomy_record(taxid)
                 except HTTPError as e:
                     logger.error(f"{e.code}: {e.reason}")
-                    logger.error(f"Your request was likely refused by NCBI.")
+                    logger.error("Your request was likely refused by NCBI.")
                     return None
 
-        if record is None:
-            return None
+                if cache_results:
+                    logger.debug("Caching taxonomy record...")
+                    self.cache.cache_taxonomy_record(record, taxid)
 
-        if cache_results:
-            logger.debug("Caching data...")
-            self.cache.cache_taxonomy_record(record, taxid)
+        if record:
+            logger.debug("Taxonomy record fetched successfully")
 
-        try:
-            return NCBIClient.validate_taxonomy_record(record)
+            try:
+                return NCBIClient.validate_taxonomy_record(record)
 
-        except ValidationError as exc:
-            logger.debug("Proper rank not found in record", errors=exc.errors())
+            except ValidationError as exc:
+                for error in exc.errors():
+                    if error["loc"][0] == "Rank":
+                        logger.warning(
+                            "Rank data not found in record",
+                            input=error["input"],
+                            loc=error["loc"][0],
+                            msg=error["msg"],
+                        )
+                    else:
+                        logger.error(
+                            "Taxonomy record failed validation", errors=exc.errors()
+                        )
+                        return None
 
         logger.info("Running additional docsum fetch...")
 
@@ -301,7 +305,7 @@ class NCBIClient:
             rank = await self._fetch_taxonomy_rank(taxid)
         except HTTPError as e:
             logger.error(f"{e.code}: {e.reason}")
-            logger.error(f"Your request was likely refused by NCBI.")
+            logger.error("Your request was likely refused by NCBI.")
             return None
 
         if rank:
@@ -381,33 +385,11 @@ class NCBIClient:
             on a second validation attempt.
         :return: A validated NCBI record
         """
-        species = None
-        logger = base_logger.bind(taxid=record["TaxId"])
-
-        lineage = []
-        for level_data in record["LineageEx"]:
-            level = NCBILineage(**level_data)
-            lineage.append(level)
-
-            if level.rank == NCBIRank.SPECIES:
-                species = level
-
-        # Fetch rank if not overwritten
         if rank is None:
-            try:
-                rank = NCBIRank(record["Rank"])
-                if rank is rank.SPECIES:
-                    species = NCBILineage(**record)
-                logger.debug("Rank data found in record", rank=rank)
-            except ValueError:
-                logger.warning("Rank data not found in record")
+            return NCBITaxonomy(**record)
 
-        return NCBITaxonomy(
-            id=record["TaxId"],
-            species=species,
-            lineage=lineage,
-            rank=rank,
-        )
+        else:
+            return NCBITaxonomy(rank=rank, **record)
 
     @staticmethod
     async def fetch_taxonomy_id_by_name(name: str) -> int | None:

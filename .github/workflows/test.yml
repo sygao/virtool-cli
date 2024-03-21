@@ -1,14 +1,17 @@
-name: Test NCBI-dependent functions
-
+name: Run tests
 on:
-  workflow_run:
-    workflows: ["ci"]
+  workflow_dispatch:
+    inputs:
+      ncbi:
+        description: 'Test NCBI server fetches'
+        type: boolean
+        default: false
 
 jobs:
-  test-ncbi:
-    runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.event == 'pull_request'
+  run-tests:
+    runs-on: ubuntu-22.04
+    name: Runs tests
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,8 +30,8 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install packages
         run: poetry install
+      - name: Test non-NCBI
+        run: poetry run pytest -m "not ncbi" --disable-socket --allow-unix-socket
       - name: Test NCBI
-        run: poetry run pytest -m "ncbi"
-        env:
-          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
-          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
+        uses: ./.github/workflows/test_ncbi.yml
+      -

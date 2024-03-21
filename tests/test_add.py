@@ -22,6 +22,7 @@ def get_all_sequence_paths(otu_path: Path) -> set[Path]:
     }
 
 
+@pytest.mark.ncbi
 class TestAddAccession:
     @staticmethod
     def get_all_filenames_in_dir(path: Path) -> set[str]:
@@ -137,6 +138,7 @@ class TestAddAccession:
         assert get_all_sequence_paths(otu_path) == before
 
 
+@pytest.mark.ncbi
 class TestAddAccessions:
     @staticmethod
     def run_add_accessions(accessions: list[str], otu_dirname: str, path: Path):
@@ -205,6 +207,7 @@ class TestAddAccessions:
         assert post_sequence_paths == pre_sequence_paths
 
 
+@pytest.mark.ncbi
 class TestAddOTU:
     @staticmethod
     def run_add_otu(path: Path, taxid: int):
@@ -241,6 +244,7 @@ class TestAddOTU:
         assert not set((scratch_path / "src").glob("*--*")) - pre_otu_paths
 
 
+@pytest.mark.ncbi
 @pytest.mark.parametrize(
     "taxon_id,accession",
     [(908125, "NC_031754"), (1016856, "NC_015504")],
