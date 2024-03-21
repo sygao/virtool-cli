@@ -1,4 +1,4 @@
-name: Comment on the pull request
+name: Test NCBI-dependent functions
 
 on:
   workflow_run:
