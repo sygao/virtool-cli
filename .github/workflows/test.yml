@@ -1,21 +1,17 @@
-name: Run NCBI tests
+name: Run tests
 on:
-  pull_request_target:
-    branches: [alpha]
+  workflow_dispatch:
+    inputs:
+      ncbi:
+        description: 'Test NCBI server fetches'
+        type: boolean
+        default: false
 
 jobs:
-  authorize:
-    environment:
-      ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      'external' || 'internal' }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
-
-  test-ncbi:
-    needs: authorize
+  run-tests:
     runs-on: ubuntu-22.04
+    name: Runs tests
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,8 +30,8 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install packages
         run: poetry install
+      - name: Test non-NCBI
+        run: poetry run pytest -m "not ncbi" --disable-socket --allow-unix-socket
       - name: Test NCBI
-        run: poetry run pytest -m "ncbi"
-        env:
-          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
-          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
+        uses: ./.github/workflows/test_ncbi.yml
+      -

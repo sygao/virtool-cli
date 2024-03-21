@@ -2,8 +2,6 @@ name: ci
 on:
   pull_request:
     branches: [main, alpha]
-  pull_request_target:
-    branches: [ alpha ]
   push:
     branches: [main, alpha]
 
@@ -17,15 +15,6 @@ jobs:
           fetch-depth: 0
       - name: Commitlint
         uses: wagoid/commitlint-github-action@v5
-
-  authorize:
-    environment:
-      ${{ github.event_name == 'pull_request_target' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      'external' || 'internal' }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
 
   test:
     runs-on: ubuntu-22.04
@@ -49,33 +38,6 @@ jobs:
         run: poetry install
       - name: Test offline
         run: poetry run pytest -m "not ncbi" --disable-socket --allow-unix-socket
-
-  test-ncbi:
-    needs: authorize
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Load cached Poetry installation
-        id: cached-poetry
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-0
-      - name: Install Poetry
-        if: steps.cached-poetry.outputs.cache-hit != 'true'
-        uses: snok/install-poetry@v1
-      - name: Install packages
-        run: poetry install
-      - name: Test NCBI
-        run: poetry run pytest -m "ncbi"
-        env:
-          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
-          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
 
   release:
     if: github.event_name == 'push'
