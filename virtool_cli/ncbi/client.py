@@ -423,10 +423,17 @@ class NCBIClient:
         :return: String containing NCBI-suggested spelling changes, None if HTTPError
         """
         logger = base_logger.bind(query=name)
+
         try:
             with log_http_error():
-                record = Entrez.read(Entrez.espell(db=db, term=quote_plus(name)))
+                handle = Entrez.espell(db=db, term=quote_plus(name))
         except HTTPError:
+            return None
+
+        try:
+            record = Entrez.read(handle)
+        except RuntimeError as exc:
+            logger.error(exc)
             return None
 
         if "CorrectedQuery" in record:
