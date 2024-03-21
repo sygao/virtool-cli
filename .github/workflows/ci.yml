@@ -15,7 +15,8 @@ jobs:
           fetch-depth: 0
       - name: Commitlint
         uses: wagoid/commitlint-github-action@v5
-  test-offline:
+
+  test:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
