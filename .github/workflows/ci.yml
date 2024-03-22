@@ -30,13 +30,6 @@ jobs:
         run: poetry install
       - name: Run unit tests
         run: poetry run pytest -m "not ncbi" --disable-socket --allow-unix-socket
-      - name: Mark unauthorized PR as unrunnable
-        if: github.event.pull_request.user != github.repository_owner
-        run: |
-          echo "$USER does not have"
-          exit 1
-        env:
-          USER: ${{github.event.pull_request.user}}
       - name: Check if NCBI auth is present
         env:
           super_secret: ${{ secrets.NCBI_API_KEY }}
