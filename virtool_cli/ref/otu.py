@@ -106,9 +106,10 @@ def group_genbank_records_by_isolate(
 
             isolates[isolate_name][record.accession] = record
 
-        logger.debug(
-            "Record does not contain sufficient source data for inclusion.",
-        )
+        else:
+            logger.debug(
+                "Record does not contain sufficient source data for inclusion.",
+            )
 
     return isolates
 
