@@ -72,44 +72,8 @@ def group_genbank_records_by_isolate(
     isolates = defaultdict(dict)
 
     for record in records:
-        logger = base_logger.bind(
-            accession=record.accession,
-            definition=record.definition,
-            source_data=record.source,
-        )
-
-        if record.source.model_fields_set.intersection(
-            {IsolateNameType.ISOLATE, IsolateNameType.STRAIN, IsolateNameType.CLONE},
-        ):
-            for source_type in IsolateNameType:
-                if source_type in record.source.model_fields_set:
-                    isolate_name = IsolateName(
-                        type=IsolateNameType(source_type),
-                        value=record.source.model_dump()[source_type],
-                    )
-
-                    isolates[isolate_name][record.accession] = record
-
-                    break
-
-        elif record.refseq:
-            logger.debug(
-                "RefSeq record does not contain sufficient source data. "
-                + "Edit before inclusion.",
-                record=record,
-            )
-
-            isolate_name = IsolateName(
-                type=IsolateNameType(IsolateNameType.REFSEQ),
-                value=record.accession,
-            )
-
+        if (isolate_name := _get_isolate_name(record)) is not None:
             isolates[isolate_name][record.accession] = record
-
-        else:
-            logger.debug(
-                "Record does not contain sufficient source data for inclusion.",
-            )
 
     return isolates
 
@@ -202,3 +166,37 @@ def get_molecule_from_records(records: list[NCBIGenbank]) -> Molecule:
         type=records[0].moltype.value,
         topology=records[0].topology.value,
     )
+
+
+def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
+    """Get the isolate name from a Genbank record"""
+    logger = base_logger.bind(
+        accession=record.accession,
+        definition=record.definition,
+        source_data=record.source,
+    )
+
+    if record.source.model_fields_set.intersection(
+        {IsolateNameType.ISOLATE, IsolateNameType.STRAIN, IsolateNameType.CLONE},
+    ):
+        for source_type in IsolateNameType:
+            if source_type in record.source.model_fields_set:
+                return IsolateName(
+                    type=IsolateNameType(source_type),
+                    value=record.source.model_dump()[source_type],
+                )
+
+    elif record.refseq:
+        logger.debug(
+            "RefSeq record does not contain sufficient source data. "
+            + "Edit before inclusion."
+        )
+
+        return IsolateName(
+            type=IsolateNameType(IsolateNameType.REFSEQ),
+            value=record.accession,
+        )
+
+    logger.debug("Record does not contain sufficient source data for inclusion.")
+
+    return None
