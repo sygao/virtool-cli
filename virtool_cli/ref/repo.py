@@ -180,7 +180,6 @@ class EventSourcedRepo:
         acronym: str,
         legacy_id: str | None,
         name: str,
-        molecule: Molecule | None,
         schema: [],
         taxid: int,
     ):
@@ -208,7 +207,6 @@ class EventSourcedRepo:
                 acronym=acronym,
                 legacy_id=legacy_id,
                 name=name,
-                molecule=molecule,
                 schema=schema,
                 rep_isolate=None,
                 taxid=taxid,

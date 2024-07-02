@@ -7,6 +7,7 @@ from virtool_cli.ncbi.client import NCBIClient
 from virtool_cli.ncbi.model import NCBIGenbank
 from virtool_cli.ref.repo import EventSourcedRepo
 from virtool_cli.ref.resources import EventSourcedRepoOTU
+from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.ref.utils import IsolateName, IsolateNameType
 from virtool_cli.utils.models import Molecule
 
@@ -39,8 +40,7 @@ def create_otu(
             acronym="",
             legacy_id=None,
             name=taxonomy.name,
-            molecule=None,
-            schema=[],
+            schema=None,
             taxid=taxid,
         )
 
@@ -134,10 +134,10 @@ def add_sequences(
 
     records = client.fetch_genbank_records(fetch_list)
 
-    if records and not otu.molecule:
-        # TODO: Upcoming UpdateMolecule event?
-        molecule = get_molecule_from_records(records)
-        otu_logger.debug("Retrieved new molecule data", molecule=molecule)
+    # if records and not otu.molecule:
+    #     # TODO: Upcoming UpdateMolecule event?
+    #     molecule = get_molecule_from_records(records)
+    #     otu_logger.debug("Retrieved new molecule data", molecule=molecule)
 
     record_bins = group_genbank_records_by_isolate(records)
 

@@ -92,11 +92,10 @@ class CreateOTUData(EventData):
     id: UUID4
     acronym: str
     legacy_id: str | None
-    molecule: Molecule | None
     name: str
-    otu_schema: OTUSchema | None = Field(alias="schema")
-    rep_isolate: UUID4 | None
     taxid: int
+    rep_isolate: UUID4 | None
+    otu_schema: OTUSchema | None = Field(None, alias="schema")
 
 
 class CreateOTU(Event):
