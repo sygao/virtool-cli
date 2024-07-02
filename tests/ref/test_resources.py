@@ -80,7 +80,6 @@ class TestOTU:
             taxid=otu.taxid,
             name=otu.name,
             acronym=otu.acronym,
-            molecule=otu.molecule,
             legacy_id=otu.legacy_id,
             schema=otu.schema,
             excluded_accessions=otu.excluded_accessions,
