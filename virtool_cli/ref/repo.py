@@ -385,7 +385,6 @@ class EventSourcedRepo:
             legacy_id=event.data.legacy_id,
             name=event.data.name,
             taxid=event.data.taxid,
-            molecule=event.data.molecule,
             schema=event.data.otu_schema,
         )
 
