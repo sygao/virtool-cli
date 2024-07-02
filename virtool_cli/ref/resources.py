@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 from uuid import UUID
 
+from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.ref.utils import DataType, IsolateName
-from virtool_cli.utils.models import Molecule
 
 
 class RepoMeta(BaseModel):
@@ -181,9 +181,8 @@ class EventSourcedRepoOTU:
         taxid: int,
         name: str,
         acronym: str = "",
-        molecule: Molecule | None = None,
         legacy_id: str | None = None,
-        schema: list | None = None,
+        schema: OTUSchema | None = None,
         excluded_accessions: list[str] | None = None,
         isolates: list[EventSourcedRepoIsolate] | None = None,
         repr_isolate: UUID | None = None,
@@ -202,9 +201,6 @@ class EventSourcedRepoOTU:
 
         self.legacy_id = legacy_id
         """A string based ID carried over from a legacy Virtool reference repository."""
-
-        self.molecule = molecule
-        """The molecule of this OTU"""
 
         self.schema = schema
         """The schema of the OTU"""
@@ -230,7 +226,6 @@ class EventSourcedRepoOTU:
             taxid=data["taxid"],
             name=data["name"],
             acronym=data.get("acronym"),
-            molecule=data.get("molecule"),
             schema=data.get("schema"),
             isolates=data.get("isolates"),
             repr_isolate=data.get("repr_isolate"),
@@ -320,10 +315,7 @@ class EventSourcedRepoOTU:
             "excluded_accessions": list(self.excluded_accessions),
             "legacy_id": self.legacy_id,
             "name": self.name,
-            "molecule": (
-                self.molecule.model_dump() if self.molecule is not None else None
-            ),
-            "schema": self.schema,
+            "schema": self.schema.model_dump() if self.schema is not None else None,
             "taxid": self.taxid,
         }
 
