@@ -5,10 +5,8 @@
     'excluded_accessions': list([
     ]),
     'legacy_id': None,
-    'molecule': None,
     'name': 'Cabbage leaf curl Jamaica virus',
-    'schema': list([
-    ]),
+    'schema': None,
     'taxid': 345184,
   })
 # ---
@@ -18,10 +16,8 @@
     'excluded_accessions': list([
     ]),
     'legacy_id': None,
-    'molecule': None,
     'name': 'Cabbage leaf curl Jamaica virus',
-    'schema': list([
-    ]),
+    'schema': None,
     'taxid': 345184,
   })
 # ---
@@ -32,10 +28,8 @@
       'excluded_accessions': list([
       ]),
       'legacy_id': None,
-      'molecule': None,
       'name': 'Cabbage leaf curl Jamaica virus',
-      'schema': list([
-      ]),
+      'schema': None,
       'taxid': 345184,
     }),
   ])
