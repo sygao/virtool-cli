@@ -12,22 +12,25 @@ from virtool_cli.ref.resources import (
     EventSourcedRepoSequence,
 )
 from virtool_cli.ref.utils import DataType, IsolateName
+from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.utils.models import Molecule, MolType, Strandedness, Topology
 
 
 @pytest.fixture()
 def initialized_repo(empty_repo: EventSourcedRepo):
     otu = empty_repo.create_otu(
-        "TMV",
-        None,
-        "Tobacco mosaic virus",
-        Molecule(
-            strandedness=Strandedness.SINGLE,
-            type=MolType.RNA,
-            topology=Topology.LINEAR,
+        acronym="TMV",
+        legacy_id=None,
+        name="Tobacco mosaic virus",
+        schema=OTUSchema(
+            molecule=Molecule(
+                strandedness=Strandedness.SINGLE,
+                type=MolType.RNA,
+                topology=Topology.LINEAR,
+            ),
+            segments={"A": True},
         ),
-        [],
-        12242,
+        taxid=12242,
     )
 
     isolate_a = empty_repo.create_isolate(otu.id, None, "A", "isolate")
@@ -46,16 +49,18 @@ def initialized_repo(empty_repo: EventSourcedRepo):
 
 def init_otu(empty_repo: EventSourcedRepo) -> EventSourcedRepoOTU:
     return empty_repo.create_otu(
-        "TMV",
-        "abcd1234",
-        "Tobacco mosaic virus",
-        Molecule(
-            strandedness=Strandedness.SINGLE,
-            type=MolType.RNA,
-            topology=Topology.LINEAR,
+        acronym="TMV",
+        legacy_id="abcd1234",
+        name="Tobacco mosaic virus",
+        schema=OTUSchema(
+            molecule=Molecule(
+                strandedness=Strandedness.SINGLE,
+                type=MolType.RNA,
+                topology=Topology.LINEAR,
+            ),
+            segments={"A": True},
         ),
-        [],
-        12242,
+        taxid=12242,
     )
 
 
@@ -77,16 +82,18 @@ class TestCreateOTU:
         the expected event file.
         """
         otu = empty_repo.create_otu(
-            "TMV",
-            "abcd1234",
-            "Tobacco mosaic virus",
-            Molecule(
-                strandedness=Strandedness.SINGLE,
-                type=MolType.RNA,
-                topology=Topology.LINEAR,
+            acronym="TMV",
+            legacy_id="abcd1234",
+            name="Tobacco mosaic virus",
+            schema=OTUSchema(
+                molecule=Molecule(
+                    strandedness=Strandedness.SINGLE,
+                    type=MolType.RNA,
+                    topology=Topology.LINEAR,
+                ),
+                segments={"A": True},
             ),
-            [],
-            12242,
+            taxid=12242,
         )
 
         assert (
@@ -97,12 +104,14 @@ class TestCreateOTU:
                 excluded_accessions=None,
                 legacy_id="abcd1234",
                 name="Tobacco mosaic virus",
-                molecule=Molecule(
-                    strandedness=Strandedness.SINGLE,
-                    type=MolType.RNA,
-                    topology=Topology.LINEAR,
+                schema=OTUSchema(
+                    molecule=Molecule(
+                        strandedness=Strandedness.SINGLE,
+                        type=MolType.RNA,
+                        topology=Topology.LINEAR,
+                    ),
+                    segments={"A": True},
                 ),
-                schema=[],
                 taxid=12242,
                 isolates=[],
             ).dict()
@@ -119,13 +128,16 @@ class TestCreateOTU:
                 "acronym": "TMV",
                 "legacy_id": "abcd1234",
                 "name": "Tobacco mosaic virus",
-                "molecule": {
-                    "strandedness": "single",
-                    "type": "RNA",
-                    "topology": "linear",
-                },
                 "rep_isolate": None,
-                "schema": [],
+                "schema": {
+                    "molecule": {
+                        "strandedness": "single",
+                        "type": "RNA",
+                        "topology": "linear",
+                    },
+                    "segments": {"A": True},
+                    "multipartite": False,
+                },
                 "taxid": 12242,
             },
             "id": 2,
@@ -142,16 +154,18 @@ class TestCreateOTU:
         ``ValueError``.
         """
         empty_repo.create_otu(
-            "TMV",
-            None,
-            "Tobacco mosaic virus",
-            Molecule(
-                strandedness=Strandedness.SINGLE,
-                type=MolType.RNA,
-                topology=Topology.LINEAR,
+            acronym="TMV",
+            legacy_id=None,
+            name="Tobacco mosaic virus",
+            schema=OTUSchema(
+                molecule=Molecule(
+                    strandedness=Strandedness.SINGLE,
+                    type=MolType.RNA,
+                    topology=Topology.LINEAR,
+                ),
+                segments={"A": True},
             ),
-            [],
-            12242,
+            taxid=12242,
         )
 
         with pytest.raises(
@@ -159,16 +173,18 @@ class TestCreateOTU:
             match="An OTU with the name 'Tobacco mosaic virus' already exists",
         ):
             empty_repo.create_otu(
-                "TMV",
-                None,
-                "Tobacco mosaic virus",
-                Molecule(
-                    strandedness=Strandedness.SINGLE,
-                    type=MolType.RNA,
-                    topology=Topology.LINEAR,
+                acronym="TMV",
+                legacy_id=None,
+                name="Tobacco mosaic virus",
+                schema=OTUSchema(
+                    molecule=Molecule(
+                        strandedness=Strandedness.SINGLE,
+                        type=MolType.RNA,
+                        topology=Topology.LINEAR,
+                    ),
+                    segments={"A": True},
                 ),
-                [],
-                438782,
+                taxid=438782,
             )
 
     def test_duplicate_legacy_id(self, empty_repo: EventSourcedRepo):
@@ -176,16 +192,18 @@ class TestCreateOTU:
         ``ValueError``.
         """
         empty_repo.create_otu(
-            "TMV",
-            "abcd1234",
-            "Tobacco mosaic virus",
-            Molecule(
-                strandedness=Strandedness.SINGLE,
-                type=MolType.RNA,
-                topology=Topology.LINEAR,
+            acronym="TMV",
+            legacy_id="abcd1234",
+            name="Tobacco mosaic virus",
+            schema=OTUSchema(
+                molecule=Molecule(
+                    strandedness=Strandedness.SINGLE,
+                    type=MolType.RNA,
+                    topology=Topology.LINEAR,
+                ),
+                segments={"A": True},
             ),
-            [],
-            12242,
+            taxid=12242,
         )
 
         with pytest.raises(
@@ -193,16 +211,18 @@ class TestCreateOTU:
             match="An OTU with the legacy ID 'abcd1234' already exists",
         ):
             empty_repo.create_otu(
-                "",
-                "abcd1234",
-                "Abaca bunchy top virus",
-                Molecule(
-                    strandedness=Strandedness.SINGLE,
-                    type=MolType.RNA,
-                    topology=Topology.LINEAR,
+                acronym="",
+                legacy_id="abcd1234",
+                name="Abaca bunchy top virus",
+                schema=OTUSchema(
+                    molecule=Molecule(
+                        strandedness=Strandedness.SINGLE,
+                        type=MolType.RNA,
+                        topology=Topology.LINEAR,
+                    ),
+                    segments={"A": True},
                 ),
-                [],
-                438782,
+                taxid=438782,
             )
 
 
@@ -300,16 +320,18 @@ class TestRetrieveOTU:
         isolates with one sequence each.
         """
         otu = empty_repo.create_otu(
-            "TMV",
-            None,
-            "Tobacco mosaic virus",
-            Molecule(
-                strandedness=Strandedness.SINGLE,
-                type=MolType.RNA,
-                topology=Topology.LINEAR,
+            acronym="TMV",
+            legacy_id=None,
+            name="Tobacco mosaic virus",
+            taxid=12242,
+            schema=OTUSchema(
+                molecule=Molecule(
+                    strandedness=Strandedness.SINGLE,
+                    type=MolType.RNA,
+                    topology=Topology.LINEAR,
+                ),
+                segments={"A": True},
             ),
-            [],
-            12242,
         )
 
         isolate_a = empty_repo.create_isolate(otu.id, None, "A", "isolate")
@@ -377,12 +399,14 @@ class TestRetrieveOTU:
                 excluded_accessions=[],
                 legacy_id=None,
                 name="Tobacco mosaic virus",
-                molecule=Molecule(
-                    strandedness=Strandedness.SINGLE,
-                    type=MolType.RNA,
-                    topology=Topology.LINEAR,
+                schema=OTUSchema(
+                    molecule=Molecule(
+                        strandedness=Strandedness.SINGLE,
+                        type=MolType.RNA,
+                        topology=Topology.LINEAR,
+                    ),
+                    segments={"A": True},
                 ),
-                schema=[],
                 taxid=12242,
                 isolates=otu_contents,
             ).dict()
@@ -460,18 +484,7 @@ def test_exclude_accession(empty_repo: EventSourcedRepo):
     """Test that excluding an accession from an OTU writes the expected event file and
     returns the expected OTU objects.
     """
-    otu = empty_repo.create_otu(
-        "TMV",
-        None,
-        "Tobacco mosaic virus",
-        Molecule(
-            strandedness=Strandedness.SINGLE,
-            type=MolType.RNA,
-            topology=Topology.LINEAR,
-        ),
-        [],
-        12242,
-    )
+    otu = init_otu(empty_repo)
 
     empty_repo.exclude_accession(otu.id, "TMVABC")
 
