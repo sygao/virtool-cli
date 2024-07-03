@@ -177,29 +177,11 @@ def create_schema_from_records(records: list[NCBIGenbank]) -> OTUSchema | None:
         )
         return None
 
-    if len(records) == 1:
-        record = records[0]
+    if segments is None:
+        segments = _get_segments_from_records(records)
 
-        if record.source.segment != "":
-            segment_name = record.source.segment
-        else:
-            segment_name = record.source.organism
-
-        return OTUSchema(molecule=molecule, segments={segment_name: True})
-
-    segment_set = set()
-    for record in records:
-        if record.source.segment:
-            segment_set.add(record.source.segment)
-        else:
-            logger.fatal("No segment name found. Cannot create schema automatically.")
-            return None
-
-    if segment_set:
-        return OTUSchema(
-            molecule=molecule,
-            segments={segment_name: True for segment_name in segment_set},
-        )
+    if segments:
+        return OTUSchema(molecule=molecule, segments=segments)
 
     return None
 
@@ -274,3 +256,24 @@ def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
     record_logger.debug("Record does not contain sufficient source data for inclusion.")
 
     return None
+
+
+def _get_segments_from_records(records) -> dict[str, bool]:
+    if len(records) == 1:
+        record = records[0]
+
+        if record.source.segment != "":
+            segment_name = record.source.segment
+        else:
+            segment_name = record.source.organism
+
+        return {segment_name: True}
+
+    segment_set = set()
+    for record in records:
+        if record.source.segment:
+            segment_set.add(record.source.segment)
+        else:
+            raise ValueError("No segment name found for multipartite OTU segment.")
+
+    return {segment_name: True for segment_name in segment_set}
