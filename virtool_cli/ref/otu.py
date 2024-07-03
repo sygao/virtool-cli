@@ -41,6 +41,22 @@ def create_otu_auto(
         )
         return None
 
+    schema = create_schema_from_records(records)
+    if schema is not None:
+        try:
+            otu = repo.create_otu(
+                acronym="",
+                legacy_id=None,
+                name=taxonomy.name,
+                schema=schema,
+                taxid=taxid,
+            )
+
+            return otu
+        except ValueError as e:
+            otu_logger.fatal(e)
+            sys.exit(1)
+
 
 def create_otu(
     repo: EventSourcedRepo,
