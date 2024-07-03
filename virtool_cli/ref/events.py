@@ -153,3 +153,17 @@ class ExcludeAccession(Event):
 
     data: ExcludeAccessionData
     query: OTUQuery
+
+
+class CreateSchemaData(EventData):
+    """The data for the creation of OTU schema data."""
+
+    molecule: Molecule
+    segments: dict[str, bool]
+
+
+class CreateSchema(Event):
+    """An OTU schema creation event."""
+
+    data: CreateSchemaData
+    query: OTUQuery
