@@ -1,5 +1,6 @@
 from pydantic import BaseModel, computed_field
 
+from utils.models import Molecule
 from virtool_cli.utils.models import Molecule
 
 
@@ -18,3 +19,14 @@ class OTUSchema(BaseModel):
             return False
 
         return True
+
+    @classmethod
+    def build_from_scratch(
+        cls, strandedness: str, moltype: str, topology: str, segments: dict[str, bool]
+    ):
+        return OTUSchema(
+            molecule=Molecule.model_validate(
+                {"strandedness": strandedness, "type": moltype, topology: "topology"}
+            ),
+            segments=segments,
+        )
