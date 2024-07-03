@@ -7,8 +7,10 @@ class OTUSchema(BaseModel):
     """A schema for the intended data"""
 
     molecule: Molecule
+    """The molecular metadata for this OTU."""
 
     segments: dict[str, bool]
+    """The segments contained in this OTU."""
 
     @computed_field
     def multipartite(self) -> bool:
