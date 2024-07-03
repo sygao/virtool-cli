@@ -1,6 +1,5 @@
 from pydantic import BaseModel, computed_field
 
-from utils.models import Molecule
 from virtool_cli.utils.models import Molecule
 
 
