@@ -172,7 +172,9 @@ def add_schema_from_accessions(
     accessions: list[str],
     ignore_cache: bool = False,
 ):
-    """Take a list of accessions and create an OTU schema based on the corresponding Genbank data."""
+    """Take a list of accessions, create an OTU schema based on
+    the corresponding Genbank data and add the new schema to the OTU"""
+
     if (otu := repo.get_otu_by_taxid(taxid)) is None:
         logger.fatal(f"OTU not found for {taxid}. Create first.")
         return
