@@ -11,7 +11,12 @@ from virtool_cli.ncbi.client import NCBIClient
 from virtool_cli.options import debug_option, path_option
 from virtool_cli.ref.build import build_json
 from virtool_cli.ref.repo import EventSourcedRepo
-from virtool_cli.ref.otu import create_otu, add_sequences, update_otu
+from virtool_cli.ref.otu import (
+    create_otu,
+    add_sequences,
+    update_otu,
+    add_schema_from_accessions,
+)
 from virtool_cli.ref.resources import DataType
 from virtool_cli.ref.utils import format_json
 from virtool_cli.utils.logging import configure_logger
@@ -84,6 +89,27 @@ def create(debug: bool, ignore_cache: bool, path: Path, taxid: int, autofill: bo
 
     if autofill:
         update_otu(repo, otu, ignore_cache=ignore_cache)
+
+
+@otu.command()
+@click.argument(
+    "accessions_",
+    metavar="ACCESSIONS",
+    nargs=-1,
+    type=str,
+)
+@click.option("--taxid", type=int, required=True)
+@ignore_cache_option
+@path_option
+@debug_option
+def schema(debug, ignore_cache, path, taxid, accessions_: list[str]):
+    configure_logger(debug)
+
+    repo = EventSourcedRepo(path)
+
+    add_schema_from_accessions(
+        repo, taxid=taxid, accessions=accessions_, ignore_cache=ignore_cache
+    )
 
 
 @otu.command()
