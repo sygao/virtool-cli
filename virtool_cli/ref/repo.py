@@ -32,6 +32,8 @@ from virtool_cli.ref.events import (
     CreateRepoData,
     CreateSequence,
     CreateSequenceData,
+    CreateSchema,
+    CreateSchemaData,
     Event,
     EventData,
     EventQuery,
@@ -49,6 +51,7 @@ from virtool_cli.ref.resources import (
     EventSourcedRepoSequence,
     RepoMeta,
 )
+from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.ref.snapshot.index import Snapshotter
 from virtool_cli.ref.utils import DataType, IsolateName, IsolateNameType, pad_zeroes
 from virtool_cli.utils.models import Molecule
@@ -56,7 +59,13 @@ from virtool_cli.utils.models import Molecule
 logger = get_logger("repo")
 
 
-OTU_EVENT_TYPES = (CreateOTU, CreateIsolate, CreateSequence, ExcludeAccession)
+OTU_EVENT_TYPES = (
+    CreateOTU,
+    CreateIsolate,
+    CreateSequence,
+    CreateSchema,
+    ExcludeAccession,
+)
 
 
 class EventSourcedRepo:
@@ -333,6 +342,23 @@ class EventSourcedRepo:
         self._snapshotter.cache_otu(otu, at_event=self.last_id)
 
         return sequence
+
+    def create_schema(self, otu_id: uuid.UUID, molecule: Molecule, segments):
+        otu = self.get_otu(otu_id)
+
+        schema_data = {"molecule": molecule, "segments": segments}
+
+        self._event_store.write_event(
+            CreateSchema,
+            CreateSchemaData(**schema_data),
+            OTUQuery(otu_id=otu.id),
+        )
+
+        otu.schema = OTUSchema(**schema_data)
+
+        self._snapshotter.cache_otu(otu, at_event=self.last_id)
+
+        return otu.schema
 
     def exclude_accession(self, otu_id: uuid.UUID, accession: str):
         """Exclude an accession for an OTU.
