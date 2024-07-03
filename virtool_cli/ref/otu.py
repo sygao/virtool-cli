@@ -65,19 +65,6 @@ def update_otu(
     add_sequences(repo, otu, linked_accessions)
 
 
-def group_genbank_records_by_isolate(
-    records: list[NCBIGenbank],
-) -> dict[IsolateName, dict[str, NCBIGenbank]]:
-    """Indexes Genbank records by isolate name"""
-    isolates = defaultdict(dict)
-
-    for record in records:
-        if (isolate_name := _get_isolate_name(record)) is not None:
-            isolates[isolate_name][record.accession] = record
-
-    return isolates
-
-
 def add_sequences(
     repo: EventSourcedRepo,
     otu: EventSourcedRepoOTU,
@@ -166,6 +153,19 @@ def get_molecule_from_records(records: list[NCBIGenbank]) -> Molecule:
         type=records[0].moltype.value,
         topology=records[0].topology.value,
     )
+
+
+def group_genbank_records_by_isolate(
+    records: list[NCBIGenbank],
+) -> dict[IsolateName, dict[str, NCBIGenbank]]:
+    """Indexes Genbank records by isolate name"""
+    isolates = defaultdict(dict)
+
+    for record in records:
+        if (isolate_name := _get_isolate_name(record)) is not None:
+            isolates[isolate_name][record.accession] = record
+
+    return isolates
 
 
 def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
