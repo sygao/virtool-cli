@@ -11,7 +11,35 @@ from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.ref.utils import IsolateName, IsolateNameType
 from virtool_cli.utils.models import Molecule
 
-base_logger = structlog.get_logger()
+logger = structlog.get_logger("otu")
+
+
+def create_otu_auto(
+    repo: EventSourcedRepo,
+    taxid: int,
+    accessions: list[str],
+    ignore_cache: bool = False,
+):
+    otu_logger = logger.bind(taxid=taxid)
+
+    client = NCBIClient.from_repo(repo.path, ignore_cache)
+
+    taxonomy = client.fetch_taxonomy_record(taxid)
+    if taxonomy is None:
+        otu_logger.fatal(f"Could not retrieve {taxid} from NCBI Taxonomy")
+        return None
+
+    records = client.fetch_genbank_records(accessions)
+    if len(records) != len(accessions):
+        otu_logger.fatal(f"Could not retrieve all requested accessions.")
+        return None
+
+    binned_records = group_genbank_records_by_isolate(records)
+    if len(binned_records) > 1:
+        otu_logger.fatal(
+            f"More than one isolate found. Cannot create schema automatically."
+        )
+        return None
 
 
 def create_otu(
@@ -20,7 +48,7 @@ def create_otu(
     ignore_cache: bool = False,
 ) -> EventSourcedRepoOTU:
     """Initialize a new OTU from a Taxonomy ID."""
-    logger = base_logger.bind(taxid=taxid)
+    otu_logger = logger.bind(taxid=taxid)
 
     if repo.get_otu_by_taxid(taxid):
         raise ValueError(
@@ -32,7 +60,7 @@ def create_otu(
     taxonomy = ncbi.fetch_taxonomy_record(taxid)
 
     if taxonomy is None:
-        logger.fatal(f"Taxonomy ID {taxid} not found")
+        otu_logger.fatal(f"Taxonomy ID {taxid} not found")
         sys.exit(1)
 
     try:
@@ -46,7 +74,7 @@ def create_otu(
 
         return otu
     except ValueError as e:
-        logger.warning(e)
+        otu_logger.warning(e)
         sys.exit(1)
 
 
@@ -76,7 +104,7 @@ def add_sequences(
     """
     client = NCBIClient.from_repo(repo.path, ignore_cache)
 
-    otu_logger = base_logger.bind(taxid=otu.taxid, otu_id=str(otu.id), name=otu.name)
+    otu_logger = logger.bind(taxid=otu.taxid, otu_id=str(otu.id), name=otu.name)
     fetch_list = list(set(accessions).difference(otu.blocked_accessions))
     if not fetch_list:
         otu_logger.info("OTU is up to date.")
@@ -170,7 +198,7 @@ def group_genbank_records_by_isolate(
 
 def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
     """Get the isolate name from a Genbank record"""
-    logger = base_logger.bind(
+    logger = logger.bind(
         accession=record.accession,
         definition=record.definition,
         source_data=record.source,
