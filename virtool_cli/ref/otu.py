@@ -182,9 +182,9 @@ def add_schema_from_accessions(
     if otu.schema is not None:
         logger.warning("OTU already has a schema attached.", schema=otu.schema)
 
-    client = NCBIClient.from_repo(repo.path, ignore_cache=True)
+    client = NCBIClient.from_repo(repo.path, ignore_cache=ignore_cache)
 
-    records = client.fetch_genbank_records(accessions, ignore_cache)
+    records = client.fetch_genbank_records(accessions)
     if not records:
         logger.fatal("Records could not be retrieved. Schema cannot be created.")
         return
