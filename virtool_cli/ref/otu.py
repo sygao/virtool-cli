@@ -166,6 +166,44 @@ def add_sequences(
         otu_logger.info("No new sequences added to OTU")
 
 
+def create_schema_from_records(records: list[NCBIGenbank]) -> OTUSchema | None:
+    molecule = get_molecule_from_records(records)
+
+    binned_records = group_genbank_records_by_isolate(records)
+    if len(binned_records) > 1:
+        logger.fatal(
+            "More than one isolate found. Cannot create schema automatically.",
+            bins=binned_records,
+        )
+        return None
+
+    if len(records) == 1:
+        record = records[0]
+
+        if record.source.segment != "":
+            segment_name = record.source.segment
+        else:
+            segment_name = record.source.organism
+
+        return OTUSchema(molecule=molecule, segments={segment_name: True})
+
+    segment_set = set()
+    for record in records:
+        if record.source.segment:
+            segment_set.add(record.source.segment)
+        else:
+            logger.fatal("No segment name found. Cannot create schema automatically.")
+            return None
+
+    if segment_set:
+        return OTUSchema(
+            molecule=molecule,
+            segments={segment_name: True for segment_name in segment_set},
+        )
+
+    return None
+
+
 def get_molecule_from_records(records: list[NCBIGenbank]) -> Molecule:
     """Return relevant molecule metadata from one or more records"""
     for record in records:
@@ -198,7 +236,7 @@ def group_genbank_records_by_isolate(
 
 def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
     """Get the isolate name from a Genbank record"""
-    logger = logger.bind(
+    record_logger = logger.bind(
         accession=record.accession,
         definition=record.definition,
         source_data=record.source,
@@ -215,7 +253,7 @@ def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
                 )
 
     elif record.refseq:
-        logger.debug(
+        record_logger.debug(
             "RefSeq record does not contain sufficient source data. "
             + "Edit before inclusion."
         )
@@ -225,6 +263,6 @@ def _get_isolate_name(record: NCBIGenbank) -> IsolateName | None:
             value=record.accession,
         )
 
-    logger.debug("Record does not contain sufficient source data for inclusion.")
+    record_logger.debug("Record does not contain sufficient source data for inclusion.")
 
     return None
