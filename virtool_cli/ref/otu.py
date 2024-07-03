@@ -202,7 +202,7 @@ def add_schema_from_accessions(
 def create_schema_from_records(
     records: list[NCBIGenbank], segments: dict[str, bool] | None = None
 ) -> OTUSchema | None:
-    molecule = get_molecule_from_records(records)
+    molecule = _get_molecule_from_records(records)
 
     binned_records = group_genbank_records_by_isolate(records)
     if len(binned_records) > 1:
@@ -221,27 +221,24 @@ def create_schema_from_records(
     return None
 
 
-def get_molecule_from_records(records: list[NCBIGenbank]) -> Molecule:
+def _get_molecule_from_records(records: list[NCBIGenbank]) -> Molecule:
     """Return relevant molecule metadata from one or more records"""
     if not records:
         raise IndexError("No records given")
 
+    rep_record = None
     for record in records:
         if record.refseq:
-            return Molecule.model_validate(
-                {
-                    "strandedness": record.strandedness.value,
-                    "type": record.moltype.value,
-                    "topology": record.topology.value,
-                }
-            )
+            rep_record = record
+            break
+    if rep_record is None:
+        rep_record = records[0]
 
-    record = records[0]
     return Molecule.model_validate(
         {
-            "strandedness": record.strandedness.value,
-            "type": record.moltype.value,
-            "topology": record.topology.value,
+            "strandedness": rep_record.strandedness.value,
+            "type": rep_record.moltype.value,
+            "topology": rep_record.topology.value,
         }
     )
 
