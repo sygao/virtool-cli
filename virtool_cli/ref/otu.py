@@ -166,7 +166,9 @@ def add_sequences(
         otu_logger.info("No new sequences added to OTU")
 
 
-def create_schema_from_records(records: list[NCBIGenbank]) -> OTUSchema | None:
+def create_schema_from_records(
+    records: list[NCBIGenbank], segments: dict[str, bool] | None = None
+) -> OTUSchema | None:
     molecule = get_molecule_from_records(records)
 
     binned_records = group_genbank_records_by_isolate(records)
