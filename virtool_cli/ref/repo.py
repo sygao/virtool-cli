@@ -581,6 +581,8 @@ class EventStore:
                     return CreateIsolate(**loaded)
                 case "CreateSequence":
                     return CreateSequence(**loaded)
+                case "CreateSchema":
+                    return CreateSchema(**loaded)
                 case "ExcludeAccession":
                     return ExcludeAccession(**loaded)
 
