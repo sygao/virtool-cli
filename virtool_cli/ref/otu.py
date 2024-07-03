@@ -166,6 +166,37 @@ def add_sequences(
         otu_logger.info("No new sequences added to OTU")
 
 
+def add_schema_from_accessions(
+    repo: EventSourcedRepo,
+    taxid: int,
+    accessions: list[str],
+    ignore_cache: bool = False,
+):
+    """Take a list of accessions and create an OTU schema based on the corresponding Genbank data."""
+    if (otu := repo.get_otu_by_taxid(taxid)) is None:
+        logger.fatal(f"OTU not found for {taxid}. Create first.")
+        return
+
+    otu_logger = logger.bind(otu_id=otu.id, taxid=taxid)
+
+    if otu.schema is not None:
+        logger.warning("OTU already has a schema attached.", schema=otu.schema)
+
+    client = NCBIClient.from_repo(repo.path, ignore_cache=True)
+
+    records = client.fetch_genbank_records(accessions, ignore_cache)
+    if not records:
+        logger.fatal("Records could not be retrieved. Schema cannot be created.")
+        return
+
+    schema = create_schema_from_records(records)
+    if schema is not None:
+        otu_logger.info("Adding schema to OTU", schema=schema)
+        repo.create_schema(
+            otu_id=otu.id, molecule=schema.molecule, segments=schema.segments
+        )
+
+
 def create_schema_from_records(
     records: list[NCBIGenbank], segments: dict[str, bool] | None = None
 ) -> OTUSchema | None:
