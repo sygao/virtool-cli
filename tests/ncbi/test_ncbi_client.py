@@ -212,7 +212,7 @@ class TestClientFetchTaxonomy:
 @pytest.mark.parametrize(
     "name,taxid",
     [
-        ("Abaca bunchy top virus", 438782),
+        ("Apple rubbery wood virus 1", 2164102),
         ("Rhynchosia golden mosaic virus", 117198),
     ],
 )

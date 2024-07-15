@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class MolType(StrEnum):
@@ -33,6 +33,8 @@ class Molecule(BaseModel):
 
     Corresponds to all sequences found in this OTU.
     """
+    model_config = ConfigDict(use_enum_values=True)
+
     strandedness: Strandedness
     type: MolType
     topology: Topology

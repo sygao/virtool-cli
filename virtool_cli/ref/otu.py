@@ -190,14 +190,20 @@ def get_molecule_from_records(records: list[NCBIGenbank]) -> Molecule:
     """Return relevant molecule metadata from one or more records"""
     for record in records:
         if record.refseq:
-            return Molecule(
-                strandedness=record.strandedness.value,
-                type=record.moltype.value,
-                topology=record.topology.value,
+            return Molecule.model_validate(
+                {
+                    "strandedness": record.strandedness.value,
+                    "type": record.moltype.value,
+                    "topology": record.topology.value,
+                }
             )
 
-    return Molecule(
-        strandedness=records[0].strandedness.value,
-        type=records[0].moltype.value,
-        topology=records[0].topology.value,
+    record = records[0]
+
+    return Molecule.model_validate(
+        {
+            "strandedness": record.strandedness.value,
+            "type": record.moltype.value,
+            "topology": record.topology.value,
+        }
     )
