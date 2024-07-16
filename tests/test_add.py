@@ -6,37 +6,46 @@ import pytest
 from syrupy import SnapshotAssertion
 from syrupy.filters import props
 
+from virtool_cli.ref.otu import create_otu_with_schema
 from virtool_cli.ref.otu import create_otu, update_otu
 from virtool_cli.ref.repo import EventSourcedRepo
 
 
-def run_add_sequences_command(taxid: int, accessions: list[str], path: Path):
-    command = [
-        "virtool",
-        "ref",
-        "sequences",
-        "add",
-        "--taxid",
-        str(taxid),
-        "--path",
-        str(path),
-    ]
+VIRTOOL_REF = ["virtool", "ref"]
 
-    subprocess.run(command + accessions, check=False)
+
+def run_create_otu_command(
+    path: Path, taxid: int, accessions: list | None = None, autofill: bool = False
+):
+    if accessions is None:
+        accessions = []
+
+    options = ["--path", str(path)]
+    if autofill:
+        options.append("--autofill")
+
+    subprocess.run(
+        VIRTOOL_REF + ["otu", "create"] + [str(taxid)] + accessions + options,
+        check=False,
+    )
 
 
 def run_update_otu_command(taxid: int, path: Path):
-    otu_command = [
-        "virtool",
-        "ref",
-        "otu",
-        "update",
-        str(taxid),
-        "--path",
-        str(path),
-    ]
+    subprocess.run(
+        VIRTOOL_REF + ["otu", "update"] + [str(taxid)] + ["--path", str(path)],
+        check=False,
+    )
 
-    subprocess.run(otu_command, check=False)
+
+def run_add_sequences_command(taxid: int, accessions: list[str], path: Path):
+    subprocess.run(
+        VIRTOOL_REF
+        + ["sequences", "add"]
+        + accessions
+        + ["--taxid", str(taxid)]
+        + ["--path", str(path)],
+        check=False,
+    )
 
 
 class TestCreateOTU:
@@ -54,7 +63,60 @@ class TestCreateOTU:
 
         # Ensure only one OTU is present in the repository, and it matches the return
         # value of the creation function.
-        assert list(precached_repo.iter_otus()) == [otu]
+        assert precached_repo.get_all_otus() == [otu]
+
+    def test_empty_fail(self, scratch_repo: EventSourcedRepo):
+        with pytest.raises(ValueError):
+            create_otu(scratch_repo, 345184)
+
+    @pytest.mark.parametrize(
+        "taxid, accessions",
+        [(1278205, ["NC_020160"]), (345184, ["DQ178610", "DQ178611"])],
+    )
+    def test_otu_autoschema(
+        self,
+        taxid: int,
+        accessions: list[str],
+        precached_repo,
+        snapshot: SnapshotAssertion,
+    ):
+        assert not precached_repo.get_all_otus()
+
+        otu = create_otu_with_schema(
+            repo=precached_repo, taxid=taxid, accessions=accessions
+        )
+
+        assert precached_repo.get_all_otus()
+
+        assert otu.schema is not None
+
+        assert otu.dict() == snapshot(exclude=props("id"))
+
+
+class TestCreateOTUCommands:
+    @pytest.mark.parametrize(
+        "taxid, accessions",
+        [(1278205, ["NC_020160"]), (345184, ["DQ178610", "DQ178611"])],
+    )
+    def test_autoschema(
+        self,
+        taxid: int,
+        accessions: list[str],
+        precached_repo: EventSourcedRepo,
+        snapshot: SnapshotAssertion,
+    ):
+        run_create_otu_command(
+            taxid=taxid,
+            path=precached_repo.path,
+            accessions=accessions,
+        )
+
+        otus = EventSourcedRepo(precached_repo.path).get_all_otus()
+
+        assert len(otus) == 1
+        otu = otus[0]
+
+        assert otu.dict() == snapshot(exclude=props("id", "isolates"))
 
     @pytest.mark.ncbi()
     def test_autofill(
@@ -62,27 +124,41 @@ class TestCreateOTU:
         precached_repo: EventSourcedRepo,
         snapshot: SnapshotAssertion,
     ):
-        subprocess.run(
-            [
-                "virtool",
-                "ref",
-                "otu",
-                "create",
-                "345184",
-                "--path",
-                str(precached_repo.path),
-                "--autofill",
-            ],
-            check=False,
+        run_create_otu_command(
+            taxid=345184,
+            path=precached_repo.path,
+            accessions=["DQ178610", "DQ178611"],
+            autofill=True,
         )
 
-        otus = list(EventSourcedRepo(precached_repo.path).iter_otus())
+        otus = EventSourcedRepo(precached_repo.path).get_all_otus()
 
         assert len(otus) == 1
         otu = otus[0]
 
         assert otu.dict() == snapshot(exclude=props("id", "isolates"))
         assert otu.accessions
+
+    @pytest.mark.ncbi()
+    def test_autofill_with_schema(
+        self,
+        precached_repo: EventSourcedRepo,
+        snapshot: SnapshotAssertion,
+    ):
+        run_create_otu_command(
+            taxid=345184,
+            accessions=["DQ178610", "DQ178611"],
+            path=precached_repo.path,
+            autofill=True,
+        )
+
+        otus = EventSourcedRepo(precached_repo.path).get_all_otus()
+
+        assert len(otus) == 1
+        otu = otus[0]
+
+        assert otu.schema == snapshot
+        assert {"DQ178610", "DQ178611"}.intersection(otu.accessions)
 
 
 class TestAddSequences:

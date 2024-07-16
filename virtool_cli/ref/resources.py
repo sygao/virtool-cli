@@ -1,10 +1,12 @@
 import datetime
 from dataclasses import dataclass
+from typing import Any
+
 from pydantic import BaseModel
 from uuid import UUID
 
+from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.ref.utils import DataType, IsolateName
-from virtool_cli.utils.models import Molecule
 
 
 class RepoMeta(BaseModel):
@@ -87,12 +89,14 @@ class EventSourcedRepoIsolate:
 
         self.legacy_id = legacy_id
         """A string based ID carried over from a legacy Virtool reference repository.
-    
+
         It the isolate was not migrated from a legacy repository, this will be `None`.
         """
 
+        self.__hash__ = None
+
     @classmethod
-    def from_dict(cls, data: dict) -> "EventSourcedRepoIsolate":
+    def from_dict(cls, data: dict[str, Any]) -> "EventSourcedRepoIsolate":
         """Build a new isolate from .dict() output"""
         return EventSourcedRepoIsolate(
             uuid=data["id"],
@@ -181,9 +185,8 @@ class EventSourcedRepoOTU:
         taxid: int,
         name: str,
         acronym: str = "",
-        molecule: Molecule | None = None,
         legacy_id: str | None = None,
-        schema: list | None = None,
+        schema: OTUSchema | None = None,
         excluded_accessions: list[str] | None = None,
         isolates: list[EventSourcedRepoIsolate] | None = None,
         repr_isolate: UUID | None = None,
@@ -203,16 +206,14 @@ class EventSourcedRepoOTU:
         self.legacy_id = legacy_id
         """A string based ID carried over from a legacy Virtool reference repository."""
 
-        self.molecule = molecule
-        """The molecule of this OTU"""
-
         self.schema = schema
         """The schema of the OTU"""
 
         self.excluded_accessions = (
             set() if excluded_accessions is None else set(excluded_accessions)
         )
-        """A set of accessions that should not be retrieved in future fetch operations"""
+        """A set of accessions that should not be retrieved
+        in future fetch operations"""
 
         self._isolates_by_id = (
             {} if isolates is None else {isolate.id: isolate for isolate in isolates}
@@ -222,15 +223,16 @@ class EventSourcedRepoOTU:
         self.repr_isolate = repr_isolate
         """The UUID of the representative isolate of this OTU"""
 
+        self.__hash__ = None
+
     @classmethod
-    def from_dict(cls, data: dict) -> "EventSourcedRepoOTU":
+    def from_dict(cls, data: dict[str, Any]) -> "EventSourcedRepoOTU":
         """Build a new OTU from .dict() output."""
         return EventSourcedRepoOTU(
             uuid=data["id"],
             taxid=data["taxid"],
             name=data["name"],
             acronym=data.get("acronym"),
-            molecule=data.get("molecule"),
             schema=data.get("schema"),
             isolates=data.get("isolates"),
             repr_isolate=data.get("repr_isolate"),
@@ -287,15 +289,16 @@ class EventSourcedRepoOTU:
         self._isolates_by_id[isolate_id].add_sequence(sequence)
 
     def get_isolate(self, isolate_id: UUID) -> EventSourcedRepoIsolate | None:
-        """Return the isolate instance associated with a given UUID if it exists,
-        else None.
+        """Return the isolate instance associated with a given UUID
+        if it exists, else None.
         """
         return self._isolates_by_id.get(isolate_id)
 
     def get_sequence_by_accession(
         self, accession: str
     ) -> EventSourcedRepoSequence | None:
-        """Return a sequence corresponding to given accession if it exists in this OTU."""
+        """Return a sequence corresponding to given accession
+        if it exists in this OTU."""
         if accession not in self.accessions:
             return None
 
@@ -320,10 +323,7 @@ class EventSourcedRepoOTU:
             "excluded_accessions": list(self.excluded_accessions),
             "legacy_id": self.legacy_id,
             "name": self.name,
-            "molecule": (
-                self.molecule.model_dump() if self.molecule is not None else None
-            ),
-            "schema": self.schema,
+            "schema": self.schema.model_dump() if self.schema is not None else None,
             "taxid": self.taxid,
         }
 

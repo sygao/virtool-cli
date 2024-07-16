@@ -32,6 +32,8 @@ from virtool_cli.ref.events import (
     CreateRepoData,
     CreateSequence,
     CreateSequenceData,
+    CreateSchema,
+    CreateSchemaData,
     Event,
     EventData,
     EventQuery,
@@ -49,6 +51,7 @@ from virtool_cli.ref.resources import (
     EventSourcedRepoSequence,
     RepoMeta,
 )
+from virtool_cli.ref.schema import OTUSchema, Segment
 from virtool_cli.ref.snapshot.index import Snapshotter
 from virtool_cli.ref.utils import DataType, IsolateName, IsolateNameType, pad_zeroes
 from virtool_cli.utils.models import Molecule
@@ -56,7 +59,13 @@ from virtool_cli.utils.models import Molecule
 logger = get_logger("repo")
 
 
-OTU_EVENT_TYPES = (CreateOTU, CreateIsolate, CreateSequence, ExcludeAccession)
+OTU_EVENT_TYPES = (
+    CreateOTU,
+    CreateIsolate,
+    CreateSequence,
+    CreateSchema,
+    ExcludeAccession,
+)
 
 
 class EventSourcedRepo:
@@ -162,8 +171,10 @@ class EventSourcedRepo:
             event_index = defaultdict(list)
 
             for event in self._event_store.iter_events():
-                if type(event) in OTU_EVENT_TYPES:
-                    event_index[event.query.otu_id].append(event.id)
+                otu_id = event.query.model_dump().get("otu_id")
+
+                if otu_id is not None:
+                    event_index[otu_id].append(event.id)
         else:
             event_index = self._event_index.load()
 
@@ -180,7 +191,6 @@ class EventSourcedRepo:
         acronym: str,
         legacy_id: str | None,
         name: str,
-        molecule: Molecule | None,
         schema: [],
         taxid: int,
     ):
@@ -208,7 +218,6 @@ class EventSourcedRepo:
                 acronym=acronym,
                 legacy_id=legacy_id,
                 name=name,
-                molecule=molecule,
                 schema=schema,
                 rep_isolate=None,
                 taxid=taxid,
@@ -336,6 +345,25 @@ class EventSourcedRepo:
 
         return sequence
 
+    def create_schema(
+        self, otu_id: uuid.UUID, molecule: Molecule, segments: list[Segment]
+    ):
+        otu = self.get_otu(otu_id)
+
+        schema_data = {"molecule": molecule, "segments": segments}
+
+        self._event_store.write_event(
+            CreateSchema,
+            CreateSchemaData(**schema_data),
+            OTUQuery(otu_id=otu.id),
+        )
+
+        otu.schema = OTUSchema(**schema_data)
+
+        self._snapshotter.cache_otu(otu, at_event=self.last_id)
+
+        return otu.schema
+
     def exclude_accession(self, otu_id: uuid.UUID, accession: str):
         """Exclude an accession for an OTU.
 
@@ -385,14 +413,19 @@ class EventSourcedRepo:
             legacy_id=event.data.legacy_id,
             name=event.data.name,
             taxid=event.data.taxid,
-            molecule=event.data.molecule,
             schema=event.data.otu_schema,
         )
 
         for event_id in event_ids[1:]:
             event = self._event_store.read_event(event_id)
 
-            if isinstance(event, CreateIsolate):
+            if isinstance(event, CreateSchema):
+                otu.schema = OTUSchema(
+                    molecule=event.data.molecule,
+                    segments=event.data.segments,
+                )
+
+            elif isinstance(event, CreateIsolate):
                 otu.add_isolate(
                     EventSourcedRepoIsolate(
                         uuid=event.data.id,
@@ -443,7 +476,10 @@ class EventSourcedRepo:
             event_ids = indexed.event_ids
 
         for event in self._event_store.iter_events(start=at_event + 1):
-            if type(event) in OTU_EVENT_TYPES and event.query.otu_id == otu_id:
+            if (
+                type(event) in OTU_EVENT_TYPES
+                and event.query.model_dump().get("otu_id") == otu_id
+            ):
                 if event.id in event_ids:
                     raise ValueError("Event ID already in event list.")
 
@@ -558,51 +594,9 @@ class EventStore:
                     return CreateIsolate(**loaded)
                 case "CreateSequence":
                     return CreateSequence(**loaded)
+                case "CreateSchema":
+                    return CreateSchema(**loaded)
                 case "ExcludeAccession":
                     return ExcludeAccession(**loaded)
 
             raise ValueError(f"Unknown event type: {loaded['type']}")
-
-
-def _write_event(
-    src_path: Path,
-    event_id: int,
-    cls: Type[Event],
-    data: EventData,
-    query: EventQuery,
-):
-    event = cls(
-        id=event_id,
-        data=data,
-        query=query,
-        timestamp=arrow.utcnow().naive,
-    )
-
-    with open(src_path / f"{pad_zeroes(event_id)}.json", "wb") as f:
-        f.write(
-            orjson.dumps(
-                event.model_dump(),
-                f,
-            ),
-        )
-
-    return event
-
-
-def _read_event_at_path(path: Path) -> Event:
-    with open(path, "rb") as f:
-        loaded = orjson.loads(f.read())
-
-        match loaded["type"]:
-            case "CreateRepo":
-                return CreateRepo(**loaded)
-            case "CreateOTU":
-                return CreateOTU(**loaded)
-            case "CreateIsolate":
-                return CreateIsolate(**loaded)
-            case "CreateSequence":
-                return CreateSequence(**loaded)
-            case "ExcludeAccession":
-                return ExcludeAccession(**loaded)
-
-        raise ValueError(f"Unknown event type: {loaded['type']}")

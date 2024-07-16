@@ -66,7 +66,7 @@ class TestSnapshotIndexCaching:
         "taxid,accessions",
         [
             (
-                438782,
+                3158377,
                 [
                     "NC_010314",
                     "NC_010315",

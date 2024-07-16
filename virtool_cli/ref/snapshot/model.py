@@ -8,7 +8,7 @@ from pydantic import (
     field_validator,
 )
 
-from virtool_cli.utils.models import Molecule
+from virtool_cli.ref.schema import OTUSchema
 from virtool_cli.ref.utils import IsolateName, IsolateNameType
 
 
@@ -81,10 +81,7 @@ class OTUSnapshotOTU(BaseModel):
     legacy_id: str | None
     """A string based ID carried over from a legacy Virtool reference repository."""
 
-    molecule: Annotated[Molecule | None, Field()] = None
-    """The molecule of this OTU"""
-
-    segment_schema: Annotated[list | None, Field(alias="schema")] = None
+    otu_schema: Annotated[OTUSchema | None, Field(alias="schema")] = None
 
     repr_isolate: UUID4 | None = None
 

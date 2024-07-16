@@ -21,7 +21,7 @@ class TestRepoToSnapshotModel:
         "taxid,accessions",
         [
             (
-                438782,
+                3158377,
                 [
                     "NC_010314",
                     "NC_010315",
@@ -55,7 +55,7 @@ class TestRepoToSnapshotModel:
 
             assert converted_model.model_dump() == snapshot
 
-    @pytest.mark.parametrize("taxid", [438782, 1441799, 430059])
+    @pytest.mark.parametrize("taxid", [1441799, 430059])
     def test_isolate_conversion(self, taxid, scratch_repo, snapshot: SnapshotAssertion):
         otu = scratch_repo.get_otu_by_taxid(taxid)
 
@@ -66,7 +66,7 @@ class TestRepoToSnapshotModel:
 
             assert converted_model.model_dump() == snapshot
 
-    @pytest.mark.parametrize("taxid", [438782, 1441799, 430059])
+    @pytest.mark.parametrize("taxid", [1441799, 430059])
     def test_otu_conversion(self, taxid, scratch_repo, snapshot: SnapshotAssertion):
         otu = scratch_repo.get_otu_by_taxid(taxid)
 

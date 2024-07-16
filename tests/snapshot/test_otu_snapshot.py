@@ -1,4 +1,3 @@
-import shutil
 from uuid import UUID
 
 import orjson
@@ -15,12 +14,10 @@ def empty_otu_snapshot_path(tmp_path):
 @pytest.mark.parametrize(
     "otu_id",
     [
-        # 438782
-        UUID("1f88507e-1a9a-4ec7-88ed-cc253c6200ce"),
         # 1441799
-        UUID("c2a22914-12cf-4b66-aa42-e1395e4498de"),
+        UUID("c323eb2f-dcbd-4a5b-bcec-171aa5e2d8f9"),
         # 430059
-        UUID("352325fa-bff2-44b1-a5ad-64de5c786c74"),
+        UUID("186b2a89-3c62-4fb0-a856-dd9667f28731"),
     ],
 )
 class TestOTUSnapshot:

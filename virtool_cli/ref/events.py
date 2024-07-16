@@ -2,6 +2,7 @@ import datetime
 
 from pydantic import UUID4, BaseModel, Field, computed_field
 
+from virtool_cli.ref.schema import OTUSchema, Segment
 from virtool_cli.ref.utils import IsolateName
 from virtool_cli.utils.models import Molecule
 
@@ -91,11 +92,10 @@ class CreateOTUData(EventData):
     id: UUID4
     acronym: str
     legacy_id: str | None
-    molecule: Molecule | None
     name: str
-    otu_schema: list = Field(alias="schema")
-    rep_isolate: UUID4 | None
     taxid: int
+    rep_isolate: UUID4 | None
+    otu_schema: OTUSchema | None = Field(None, alias="schema")
 
 
 class CreateOTU(Event):
@@ -152,4 +152,18 @@ class ExcludeAccession(Event):
     """
 
     data: ExcludeAccessionData
+    query: OTUQuery
+
+
+class CreateSchemaData(EventData):
+    """The data for the creation of OTU schema data."""
+
+    molecule: Molecule
+    segments: list[Segment]
+
+
+class CreateSchema(Event):
+    """An OTU schema creation event."""
+
+    data: CreateSchemaData
     query: OTUQuery

@@ -11,7 +11,12 @@ from virtool_cli.ncbi.client import NCBIClient
 from virtool_cli.options import debug_option, path_option
 from virtool_cli.ref.build import build_json
 from virtool_cli.ref.repo import EventSourcedRepo
-from virtool_cli.ref.otu import create_otu, add_sequences, update_otu
+from virtool_cli.ref.otu import (
+    create_otu,
+    create_otu_with_schema,
+    add_sequences,
+    update_otu,
+)
 from virtool_cli.ref.resources import DataType
 from virtool_cli.ref.utils import format_json
 from virtool_cli.utils.logging import configure_logger
@@ -67,23 +72,47 @@ def otu():
 
 @otu.command()
 @click.argument("TAXID", type=int)
+@click.argument(
+    "accessions_",
+    metavar="ACCESSIONS",
+    nargs=-1,
+    type=str,
+)
 @click.option("--autofill/--no-fill", default=False)
 @ignore_cache_option
 @debug_option
 @path_option
-def create(debug: bool, ignore_cache: bool, path: Path, taxid: int, autofill: bool):
+def create(
+    debug: bool,
+    ignore_cache: bool,
+    path: Path,
+    taxid: int,
+    accessions_: list[str],
+    autofill: bool,
+):
     configure_logger(debug)
 
     repo = EventSourcedRepo(path)
 
-    try:
-        otu = create_otu(repo, taxid, ignore_cache=False)
-    except ValueError as e:
-        click.echo(e, err=True)
-        sys.exit(1)
+    if accessions_:
+        try:
+            new_otu = create_otu_with_schema(
+                repo, taxid, accessions_, ignore_cache=False
+            )
+        except ValueError as e:
+            click.echo(e, err=True)
+            sys.exit(1)
+
+    else:
+        click.echo("No accessions given. Creating without schema...", err=True)
+        try:
+            new_otu = create_otu(repo, taxid, ignore_cache=False)
+        except ValueError as e:
+            click.echo(e, err=True)
+            sys.exit(1)
 
     if autofill:
-        update_otu(repo, otu, ignore_cache=ignore_cache)
+        update_otu(repo, new_otu, ignore_cache=ignore_cache)
 
 
 @otu.command()
@@ -131,13 +160,13 @@ def add(debug, ignore_cache, path, taxid, accessions_: list[str]):
 
     repo = EventSourcedRepo(path)
 
-    otu = repo.get_otu_by_taxid(taxid)
-    if otu is None:
+    existing_otu = repo.get_otu_by_taxid(taxid)
+    if existing_otu is None:
         click.echo(f"OTU not found for Taxonomy ID {taxid}.", err=True)
         click.echo(f'Run "virtool otu create {taxid} --path {path} --autofill" instead')
         sys.exit(1)
 
-    add_sequences(repo, otu, accessions=accessions_, ignore_cache=ignore_cache)
+    add_sequences(repo, existing_otu, accessions=accessions_, ignore_cache=ignore_cache)
 
 
 @ref.group()
